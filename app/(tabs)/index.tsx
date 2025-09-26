@@ -57,6 +57,7 @@ export default function HomeScreen() {
     projectSection: {
       alignItems: "center",
       marginBottom: 32,
+      backgroundColor: colors.cardBackground,
     },
     projectName: {
       fontSize: 20,

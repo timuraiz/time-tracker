@@ -49,8 +49,9 @@ export default function TabLayout() {
                 width: 70,
                 borderRadius: 100,
                 borderWidth: 10,
-                borderColor: "white",
-                backgroundColor: "white",
+                borderColor:
+                  Colors[(colorScheme as keyof typeof Colors) ?? "light"]
+                    .tabBackground,
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: 10,

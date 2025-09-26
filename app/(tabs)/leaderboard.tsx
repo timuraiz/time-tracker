@@ -104,6 +104,7 @@ export default function Leaderboard() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: colors.background,
     },
     header: {
       padding: 24,
@@ -125,7 +126,7 @@ export default function Leaderboard() {
       alignItems: "flex-end",
       paddingHorizontal: 20,
       marginBottom: 30,
-      height: 180
+      height: 180,
     },
     podiumItem: {
       alignItems: "center",
@@ -146,20 +147,19 @@ export default function Leaderboard() {
       elevation: 4,
     },
     firstPlace: {
-      marginBottom: 40
+      marginBottom: 40,
     },
     secondPlace: {
-      marginBottom: 20
+      marginBottom: 20,
     },
-    thirdPlace: {
-    },
+    thirdPlace: {},
     podiumAvatar: {
       width: 50,
       height: 50,
       borderRadius: 50,
       marginBottom: 8,
       borderWidth: 1,
-      borderColor: colors.primary
+      borderColor: colors.primary,
     },
     podiumRank: {
       fontSize: 20,
@@ -168,7 +168,7 @@ export default function Leaderboard() {
     podiumTime: {
       fontSize: 12,
       fontWeight: "600",
-      color: colors.primary
+      color: colors.primary,
     },
     leaderboardCard: {
       margin: 16,
@@ -193,6 +193,7 @@ export default function Leaderboard() {
       paddingVertical: 16,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+      backgroundColor: colors.cardBackground,
     },
     currentUserItem: {
       backgroundColor: colors.primary + "15",
@@ -212,7 +213,7 @@ export default function Leaderboard() {
       borderRadius: 20,
       marginHorizontal: 16,
       borderWidth: 1,
-      borderColor: colors.primary
+      borderColor: colors.primary,
     },
     userInfo: {
       flex: 1,
@@ -256,6 +257,7 @@ export default function Leaderboard() {
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 12,
+      backgroundColor: colors.cardBackground,
     },
     statsLabel: {
       fontSize: 16,
