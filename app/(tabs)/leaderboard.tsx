@@ -278,7 +278,7 @@ export default function Leaderboard() {
             Leaderboard
           </ThemedText>
           <ThemedText style={styles.subtitle}>
-            See who's building dreams the most!
+            See who&apos;s building dreams the most!
           </ThemedText>
         </View>
 

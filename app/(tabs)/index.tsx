@@ -2,26 +2,32 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { useTimer } from "@/hooks/useTimer";
+import React from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface TimeEntry {
-  id: string;
-  project: string;
-  startTime: Date;
-  endTime?: Date;
-  duration: number;
-}
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
-  const [isRunning, setIsRunning] = useState(false);
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const colors = Colors[colorScheme ?? ("light" as keyof typeof Colors)];
 
-  const colors = Colors[colorScheme ?? "light"];
+  const {
+    isRunning,
+    elapsedTime,
+    currentEntryId,
+    timeEntries,
+    isLoadingEntries,
+    isOnline,
+    handleStartStop,
+    getTotalDuration,
+    getTodaySessionsCount,
+    formatTime,
+  } = useTimer();
 
   const styles = StyleSheet.create({
     container: {
@@ -46,13 +52,13 @@ export default function HomeScreen() {
       margin: 16,
       padding: 32,
       borderRadius: 24,
-      backgroundColor: colors.cardBackground,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 12,
       elevation: 8,
       alignItems: "center",
+      backgroundColor: colors.cardBackground,
     },
     projectSection: {
       alignItems: "center",
@@ -105,12 +111,12 @@ export default function HomeScreen() {
       marginTop: 8,
       padding: 24,
       borderRadius: 16,
-      backgroundColor: colors.cardBackground,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.05,
       shadowRadius: 8,
       elevation: 4,
+      backgroundColor: colors.cardBackground,
     },
     statsTitle: {
       fontSize: 20,
@@ -138,18 +144,19 @@ export default function HomeScreen() {
       marginTop: 8,
       padding: 24,
       borderRadius: 16,
-      backgroundColor: colors.cardBackground,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.05,
       shadowRadius: 8,
       elevation: 4,
       marginBottom: 32,
+      backgroundColor: colors.cardBackground,
     },
     entriesTitle: {
       fontSize: 20,
       fontWeight: "600",
       marginBottom: 20,
+      backgroundColor: colors.cardBackground,
     },
     entryRow: {
       flexDirection: "row",
@@ -168,6 +175,7 @@ export default function HomeScreen() {
       fontSize: 16,
       fontWeight: "500",
       marginBottom: 4,
+      backgroundColor: colors.cardBackground,
     },
     entryTime: {
       fontSize: 14,
@@ -179,53 +187,52 @@ export default function HomeScreen() {
       fontFamily: "monospace",
       color: colors.primary,
     },
+    loadingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+      backgroundColor: colors.cardBackground,
+    },
+    loadingText: {
+      marginLeft: 10,
+      fontSize: 14,
+      color: colors.text,
+      opacity: 0.7,
+    },
+    emptyContainer: {
+      alignItems: "center",
+      padding: 20,
+      backgroundColor: colors.cardBackground,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.text,
+      opacity: 0.7,
+    },
+    entriesHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: colors.cardBackground,
+    },
+    statusIndicators: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    offlineIndicator: {
+      backgroundColor: "#ff6b6b",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+    },
+    offlineText: {
+      fontSize: 12,
+      color: "white",
+      fontWeight: "600",
+    },
   });
-
-  useEffect(() => {
-    let interval: number;
-    if (isRunning && startTime) {
-      interval = setInterval(() => {
-        setElapsedTime(Date.now() - startTime.getTime());
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, startTime]);
-
-  const formatTime = (milliseconds: number) => {
-    const seconds = Math.floor(milliseconds / 1000);
-    const mins = Math.floor(seconds / 60);
-    const hours = Math.floor(mins / 60);
-    return `${hours.toString().padStart(2, "0")}:${(mins % 60)
-      .toString()
-      .padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
-  };
-
-  const handleStartStop = () => {
-    if (isRunning) {
-      const endTime = new Date();
-      const newEntry: TimeEntry = {
-        id: Date.now().toString(),
-        project: "Building Dreams",
-        startTime: startTime!,
-        endTime,
-        duration: elapsedTime,
-      };
-      setTimeEntries((prev) => [newEntry, ...prev]);
-      setIsRunning(false);
-      setStartTime(null);
-      setElapsedTime(0);
-    } else {
-      setIsRunning(true);
-      setStartTime(new Date());
-    }
-  };
-
-  const getTotalDuration = () => {
-    const today = new Date().toDateString();
-    return timeEntries
-      .filter((entry) => entry.startTime.toDateString() === today)
-      .reduce((total, entry) => total + entry.duration, 0);
-  };
 
   return (
     <ScrollView style={styles.container}>
@@ -258,7 +265,7 @@ export default function HomeScreen() {
 
         <ThemedView style={styles.statsCard}>
           <ThemedText type="subtitle" style={styles.statsTitle}>
-            Today's Summary
+            Today&apos;s Summary
           </ThemedText>
           <ThemedView style={styles.statsRow}>
             <ThemedText style={styles.statsLabel}>Total Time</ThemedText>
@@ -269,43 +276,67 @@ export default function HomeScreen() {
           <ThemedView style={styles.statsRow}>
             <ThemedText style={styles.statsLabel}>Sessions</ThemedText>
             <ThemedText style={styles.statsValue}>
-              {
-                timeEntries.filter(
-                  (entry) =>
-                    entry.startTime.toDateString() === new Date().toDateString()
-                ).length
-              }
+              {getTodaySessionsCount()}
             </ThemedText>
           </ThemedView>
         </ThemedView>
 
         <ThemedView style={styles.entriesCard}>
-          <ThemedText type="subtitle" style={styles.entriesTitle}>
-            Recent Sessions
-          </ThemedText>
-          {timeEntries.slice(0, 5).map((entry) => (
-            <ThemedView key={entry.id} style={styles.entryRow}>
-              <ThemedView style={styles.entryInfo}>
-                <ThemedText style={styles.entryProject}>
-                  {entry.project}
-                </ThemedText>
-                <ThemedText style={styles.entryTime}>
-                  {entry.startTime.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  -{" "}
-                  {entry.endTime?.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </ThemedText>
-              </ThemedView>
-              <ThemedText style={styles.entryDuration}>
-                {formatTime(entry.duration)}
+          <ThemedView style={styles.entriesHeader}>
+            <ThemedText type="subtitle" style={styles.entriesTitle}>
+              Recent Sessions
+            </ThemedText>
+            <ThemedView style={styles.statusIndicators}>
+              {!isOnline && (
+                <ThemedView style={styles.offlineIndicator}>
+                  <ThemedText style={styles.offlineText}>Offline</ThemedText>
+                </ThemedView>
+              )}
+            </ThemedView>
+          </ThemedView>
+          {isLoadingEntries ? (
+            <ThemedView style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <ThemedText style={styles.loadingText}>
+                Loading sessions...
               </ThemedText>
             </ThemedView>
-          ))}
+          ) : timeEntries.length === 0 ? (
+            <ThemedView style={styles.emptyContainer}>
+              <ThemedText style={styles.emptyText}>No sessions yet</ThemedText>
+            </ThemedView>
+          ) : (
+            timeEntries.slice(0, 5).map((entry, index) => (
+              <ThemedView
+                key={entry.id || `entry-${index}`}
+                style={styles.entryRow}
+              >
+                <ThemedView style={styles.entryInfo}>
+                  <ThemedText style={styles.entryProject}>
+                    {entry.project}
+                  </ThemedText>
+                  <ThemedText style={styles.entryTime}>
+                    {entry.startTime.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    -{" "}
+                    {entry.endTime?.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedText style={styles.entryDuration}>
+                  {entry.endTime
+                    ? formatTime(entry.duration)
+                    : entry.id === currentEntryId
+                    ? formatTime(elapsedTime)
+                    : formatTime(entry.duration)}
+                </ThemedText>
+              </ThemedView>
+            ))
+          )}
         </ThemedView>
       </SafeAreaView>
     </ScrollView>

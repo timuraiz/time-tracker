@@ -7,72 +7,116 @@ import React, { useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   Image,
   ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  View
-} from 'react-native'
+  View,
+} from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const { width } = Dimensions.get('window')
-
 export default function AuthForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
-  const colorScheme = useColorScheme()
-  const colors = Colors[colorScheme ?? 'light']
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [otp, setOtp] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [isOtpMode, setIsOtpMode] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? "light"];
 
-  async function signInWithEmail() {
-    setIsLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
+  async function signInWithOtp() {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
-    })
+    });
 
     if (error) {
-      Alert.alert('Error', error.message)
+      Alert.alert("Error", error.message);
+    } else {
+      setPendingEmail(email);
+      setIsOtpMode(true);
+      Alert.alert(
+        "OTP Sent",
+        "Check your email for the 6-digit verification code!"
+      );
     }
-    setIsLoading(false)
+    setIsLoading(false);
   }
 
-  async function signUpWithEmail() {
-    setIsLoading(true)
-    const { error } = await supabase.auth.signUp({
+  async function signUpWithOtp() {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
       options: {
+        shouldCreateUser: true,
         data: {
           name: name,
-        }
-      }
-    })
+        },
+      },
+    });
 
     if (error) {
-      Alert.alert('Error', error.message)
+      Alert.alert("Error", error.message);
     } else {
-      Alert.alert('Success', 'Check your email for a confirmation link!')
+      setPendingEmail(email);
+      setIsOtpMode(true);
+      Alert.alert(
+        "OTP Sent",
+        "Check your email for the 6-digit verification code!"
+      );
     }
-    setIsLoading(false)
+    setIsLoading(false);
+  }
+
+  async function verifyOtp() {
+    setIsLoading(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email: pendingEmail,
+      token: otp,
+      type: isSignUp ? "signup" : "email",
+    });
+
+    if (error) {
+      Alert.alert("Error", error.message);
+    } else {
+      Alert.alert(
+        "Success",
+        isSignUp ? "Account created successfully!" : "Signed in successfully!"
+      );
+      setIsOtpMode(false);
+      setOtp("");
+      setPendingEmail("");
+    }
+    setIsLoading(false);
   }
 
   const handleSubmit = () => {
-    if (!email || !password || (isSignUp && !name)) {
-      Alert.alert('Error', 'Please fill in all fields')
-      return
+    if (isOtpMode) {
+      if (!otp) {
+        Alert.alert("Error", "Please enter the verification code");
+        return;
+      }
+      verifyOtp();
+      return;
     }
 
     if (isSignUp) {
-      signUpWithEmail()
+      if (!email || !name) {
+        Alert.alert("Error", "Please fill in all fields");
+        return;
+      }
+      signUpWithOtp();
     } else {
-      signInWithEmail()
+      if (!email) {
+        Alert.alert("Error", "Please enter your email");
+        return;
+      }
+      signInWithOtp();
     }
-  }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -81,11 +125,11 @@ export default function AuthForm() {
     },
     scrollContainer: {
       flexGrow: 1,
-      justifyContent: 'center',
+      justifyContent: "center",
       paddingHorizontal: 24,
     },
     header: {
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: 40,
     },
     logoContainer: {
@@ -93,44 +137,44 @@ export default function AuthForm() {
       height: 80,
       borderRadius: 24,
       backgroundColor: colors.cardBackground,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       marginBottom: 24,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 12,
       elevation: 8,
-      overflow: 'hidden',
+      overflow: "hidden",
     },
     logo: {
       width: 80,
       height: 80,
-      resizeMode: 'cover',
+      resizeMode: "cover",
     },
     logoText: {
       fontSize: 32,
-      fontWeight: 'bold',
-      color: '#fff',
-      lineHeight: 34
+      fontWeight: "bold",
+      color: "#fff",
+      lineHeight: 34,
     },
     welcomeText: {
       fontSize: 28,
       lineHeight: 28,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       marginBottom: 8,
-      textAlign: 'center',
+      textAlign: "center",
     },
     subtitleText: {
       fontSize: 16,
       opacity: 0.7,
-      textAlign: 'center',
+      textAlign: "center",
       marginBottom: 8,
     },
     form: {
-      width: '100%',
+      width: "100%",
       maxWidth: 400,
-      alignSelf: 'center',
+      alignSelf: "center",
     },
     formCard: {
       padding: 32,
@@ -148,7 +192,7 @@ export default function AuthForm() {
     },
     inputLabel: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
       marginBottom: 8,
       color: colors.text,
     },
@@ -169,7 +213,7 @@ export default function AuthForm() {
       backgroundColor: colors.primary,
       borderRadius: 12,
       padding: 16,
-      alignItems: 'center',
+      alignItems: "center",
       marginTop: 8,
       shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 4 },
@@ -181,12 +225,12 @@ export default function AuthForm() {
       opacity: 0.6,
     },
     buttonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     switchContainer: {
-      alignItems: 'center',
+      alignItems: "center",
       padding: 24,
     },
     switchButton: {
@@ -195,11 +239,11 @@ export default function AuthForm() {
     switchText: {
       color: colors.primary,
       fontSize: 16,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginVertical: 24,
     },
     dividerLine: {
@@ -212,7 +256,40 @@ export default function AuthForm() {
       fontSize: 14,
       opacity: 0.6,
     },
-  })
+    otpContainer: {
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    otpInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 16,
+      fontSize: 18,
+      backgroundColor: colors.cardBackground,
+      color: colors.text,
+      textAlign: "center",
+      letterSpacing: 4,
+      fontWeight: "600",
+    },
+    backButton: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginTop: 16,
+    },
+    backButtonText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "500",
+    },
+    otpInfo: {
+      textAlign: "center",
+      marginBottom: 24,
+      opacity: 0.7,
+      lineHeight: 20,
+    },
+  });
 
   return (
     <ThemedView style={styles.container}>
@@ -226,105 +303,157 @@ export default function AuthForm() {
           <View style={styles.header}>
             <View style={styles.logoContainer}>
               <Image
-                source={require('../assets/images/icon.png')}
+                source={require("../assets/images/icon.png")}
                 style={styles.logo}
               />
             </View>
             <ThemedText style={styles.welcomeText}>
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
+              {isOtpMode
+                ? "Verify Your Email"
+                : isSignUp
+                ? "Create Account"
+                : "Welcome Back"}
             </ThemedText>
             <ThemedText style={styles.subtitleText}>
-              {isSignUp
-                ? 'Join thousands tracking their time efficiently'
-                : 'Sign in to continue your time tracking journey'
-              }
+              {isOtpMode
+                ? `Enter the verification code sent to ${pendingEmail}`
+                : isSignUp
+                ? "Join thousands tracking their time efficiently"
+                : "Sign in to continue your time tracking journey"}
             </ThemedText>
           </View>
 
           {/* Form */}
           <View style={styles.form}>
             <ThemedView style={styles.formCard}>
-              {isSignUp && (
-                <View style={styles.inputContainer}>
-                  <ThemedText style={styles.inputLabel}>Name</ThemedText>
-                  <TextInput
-                    style={[styles.input]}
-                    placeholder="Enter your name"
-                    placeholderTextColor={colors.icon}
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    editable={!isLoading}
-                  />
-                </View>
-              )}
-
-              <View style={styles.inputContainer}>
-                <ThemedText style={styles.inputLabel}>Email</ThemedText>
-                <TextInput
-                  style={[styles.input]}
-                  placeholder="Enter your email"
-                  placeholderTextColor={colors.icon}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!isLoading}
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <ThemedText style={styles.inputLabel}>Password</ThemedText>
-                <TextInput
-                  style={[styles.input]}
-                  placeholder="Enter your password"
-                  placeholderTextColor={colors.icon}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!isLoading}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={[styles.button, isLoading && styles.buttonDisabled]}
-                onPress={handleSubmit}
-                disabled={isLoading}
-                activeOpacity={0.8}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <ThemedText style={styles.buttonText}>
-                    {isSignUp ? 'Create Account' : 'Sign In'}
+              {isOtpMode ? (
+                <>
+                  <ThemedText style={styles.otpInfo}>
+                    Please enter the 6-digit verification code that was sent to
+                    your email address.
                   </ThemedText>
-                )}
-              </TouchableOpacity>
+
+                  <View style={styles.inputContainer}>
+                    <ThemedText style={styles.inputLabel}>
+                      Verification Code
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.input, styles.otpInput]}
+                      placeholder="●●●●●●"
+                      placeholderTextColor={colors.icon}
+                      value={otp}
+                      onChangeText={setOtp}
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!isLoading}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.button, isLoading && styles.buttonDisabled]}
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <ThemedText style={styles.buttonText}>
+                        Verify Code
+                      </ThemedText>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.button, styles.backButton]}
+                    onPress={() => {
+                      setIsOtpMode(false);
+                      setOtp("");
+                      setPendingEmail("");
+                    }}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    <ThemedText style={styles.backButtonText}>
+                      Back to {isSignUp ? "Sign Up" : "Sign In"}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  {isSignUp && (
+                    <View style={styles.inputContainer}>
+                      <ThemedText style={styles.inputLabel}>Name</ThemedText>
+                      <TextInput
+                        style={[styles.input]}
+                        placeholder="Enter your name"
+                        placeholderTextColor={colors.icon}
+                        value={name}
+                        onChangeText={setName}
+                        autoCapitalize="words"
+                        autoCorrect={false}
+                        editable={!isLoading}
+                      />
+                    </View>
+                  )}
+
+                  <View style={styles.inputContainer}>
+                    <ThemedText style={styles.inputLabel}>Email</ThemedText>
+                    <TextInput
+                      style={[styles.input]}
+                      placeholder="Enter your email"
+                      placeholderTextColor={colors.icon}
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!isLoading}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.button, isLoading && styles.buttonDisabled]}
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <ThemedText style={styles.buttonText}>
+                        {isSignUp
+                          ? "Send Verification Code"
+                          : "Send Sign In Code"}
+                      </ThemedText>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
             </ThemedView>
 
             {/* Switch Mode */}
-            <View style={styles.switchContainer}>
-              <TouchableOpacity
-                style={styles.switchButton}
-                onPress={() => setIsSignUp(!isSignUp)}
-                disabled={isLoading}
-                activeOpacity={0.7}
-              >
-                <ThemedText style={styles.switchText}>
-                  {isSignUp
-                    ? 'Already have an account? Sign In'
-                    : "Don't have an account? Sign Up"
-                  }
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
+            {!isOtpMode && (
+              <View style={styles.switchContainer}>
+                <TouchableOpacity
+                  style={styles.switchButton}
+                  onPress={() => setIsSignUp(!isSignUp)}
+                  disabled={isLoading}
+                  activeOpacity={0.7}
+                >
+                  <ThemedText style={styles.switchText}>
+                    {isSignUp
+                      ? "Already have an account? Sign In"
+                      : "Don't have an account? Sign Up"}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
-  )
+  );
 }

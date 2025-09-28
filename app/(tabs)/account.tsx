@@ -1,11 +1,20 @@
+import ProjectsModal from "@/components/projects-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthContext } from "@/hooks/use-auth-context";
-import { supabase } from '@/lib/supabase.web';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { supabase } from "@/lib/supabase.web";
 import React, { useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserStats {
@@ -30,13 +39,22 @@ export default function Profile() {
   const colors = Colors[colorScheme ?? "light"];
   const { session, profile } = useAuthContext();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
+
+  console.log("access_token", session?.access_token);
+  console.log("expires_in", session?.expires_in);
+  console.log("expires_at", session?.expires_at);
 
   // User data from auth context
   const userData = {
     name: profile?.name || session?.user?.user_metadata?.name || "User",
     email: session?.user?.email || "user@example.com",
-    avatarUrl: session?.user?.user_metadata?.avatar_url || "https://i.pravatar.cc/150?img=1",
-    joinedDate: new Date(session?.user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    avatarUrl:
+      session?.user?.user_metadata?.avatar_url ||
+      "https://i.pravatar.cc/150?img=1",
+    joinedDate: new Date(
+      session?.user?.created_at || Date.now()
+    ).toLocaleDateString("en-US", { month: "long", year: "numeric" }),
     rank: "#1",
     level: "Master",
   };
@@ -51,32 +69,35 @@ export default function Profile() {
   };
 
   const handleSignOut = async () => {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          setIsSigningOut(true);
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.error("Error signing out:", error);
+            Alert.alert("Error", "Failed to sign out");
+          }
+          setIsSigningOut(false);
         },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            setIsSigningOut(true);
-            const { error } = await supabase.auth.signOut();
-            if (error) {
-              console.error('Error signing out:', error);
-              Alert.alert('Error', 'Failed to sign out');
-            }
-            setIsSigningOut(false);
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const settingsItems: SettingsItem[] = [
+    {
+      id: "projects",
+      title: "Manage Projects",
+      subtitle: "Create and edit projects",
+      icon: "📁",
+      onPress: () => setShowProjectsModal(true),
+    },
     {
       id: "notifications",
       title: "Notifications",
@@ -299,6 +320,7 @@ export default function Profile() {
               alignItems: "center",
               justifyContent: "center",
               gap: 4,
+              backgroundColor: colors.cardBackground,
             }}
           >
             <ThemedText style={styles.online}>🕯️</ThemedText>
@@ -385,7 +407,7 @@ export default function Profile() {
                     </ThemedText>
                   )}
                 </View>
-                {item.id === 'signout' && isSigningOut ? (
+                {item.id === "signout" && isSigningOut ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
                   <ThemedText style={styles.chevron}>›</ThemedText>
@@ -394,6 +416,12 @@ export default function Profile() {
             ))}
           </ThemedView>
         </View>
+
+        {/* Projects Modal */}
+        <ProjectsModal
+          visible={showProjectsModal}
+          onClose={() => setShowProjectsModal(false)}
+        />
       </SafeAreaView>
     </ScrollView>
   );
