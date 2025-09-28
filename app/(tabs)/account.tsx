@@ -2,8 +2,10 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import React from "react";
-import { Alert, Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useAuthContext } from "@/hooks/use-auth-context";
+import { supabase } from '@/lib/supabase.web';
+import React, { useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserStats {
@@ -26,13 +28,15 @@ interface SettingsItem {
 export default function Profile() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  const { session, profile } = useAuthContext();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Mock user data
+  // User data from auth context
   const userData = {
-    name: "Dream Builder",
-    email: "dreamer@example.com",
-    avatarUrl: "https://i.pravatar.cc/150?img=1",
-    joinedDate: "January 2024",
+    name: profile?.name || session?.user?.user_metadata?.name || "User",
+    email: session?.user?.email || "user@example.com",
+    avatarUrl: session?.user?.user_metadata?.avatar_url || "https://i.pravatar.cc/150?img=1",
+    joinedDate: new Date(session?.user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     rank: "#1",
     level: "Master",
   };
@@ -46,25 +50,26 @@ export default function Profile() {
     level: "Master",
   };
 
-  const handleLogout = () => {
+  const handleSignOut = async () => {
     Alert.alert(
-      "Log Out",
-      "Are you sure you want to log out? Your data will be saved.",
+      "Sign Out",
+      "Are you sure you want to sign out?",
       [
         {
           text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Log Out",
+          text: "Sign Out",
           style: "destructive",
-          onPress: () => {
-            // Here you would typically:
-            // 1. Clear user session/tokens
-            // 2. Clear local storage if needed
-            // 3. Navigate to login screen
-            console.log("User logged out");
-            Alert.alert("Logged Out", "You have been successfully logged out.");
+          onPress: async () => {
+            setIsSigningOut(true);
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Failed to sign out');
+            }
+            setIsSigningOut(false);
           },
         },
       ]
@@ -108,11 +113,11 @@ export default function Profile() {
       onPress: () => console.log("Help"),
     },
     {
-      id: "logout",
-      title: "Log Out",
+      id: "signout",
+      title: "Sign Out",
       subtitle: "Sign out of your account",
       icon: "🚪",
-      onPress: () => handleLogout(),
+      onPress: handleSignOut,
     },
   ];
 
@@ -144,6 +149,10 @@ export default function Profile() {
       fontWeight: "bold",
       marginBottom: 8,
     },
+    online: {
+      fontSize: 20,
+      backgroundColor: colors.cardBackground,
+    },
     profileCard: {
       margin: 16,
       padding: 32,
@@ -167,7 +176,6 @@ export default function Profile() {
     userName: {
       fontSize: 24,
       fontWeight: "bold",
-      marginBottom: 4,
     },
     userEmail: {
       fontSize: 16,
@@ -285,15 +293,34 @@ export default function Profile() {
         {/* Profile Card */}
         <ThemedView style={styles.profileCard}>
           <Image source={{ uri: userData.avatarUrl }} style={styles.avatar} />
-          <ThemedText style={styles.userName}>{userData.name}</ThemedText>
+          <ThemedView
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+            }}
+          >
+            <ThemedText style={styles.online}>🕯️</ThemedText>
+            <ThemedText style={styles.userName}>{userData.name}</ThemedText>
+          </ThemedView>
           <ThemedText style={styles.userEmail}>{userData.email}</ThemedText>
-          <View style={[styles.levelBadge, { backgroundColor: getLevelColor(userData.level) }]}>
+          <View
+            style={[
+              styles.levelBadge,
+              { backgroundColor: getLevelColor(userData.level) },
+            ]}
+          >
             <ThemedText style={styles.levelText}>{userData.level}</ThemedText>
           </View>
           <View style={styles.userInfo}>
-            <ThemedText style={styles.infoText}>Rank: {userData.rank}</ThemedText>
+            <ThemedText style={styles.infoText}>
+              Rank: {userData.rank}
+            </ThemedText>
             <ThemedText style={styles.infoText}>•</ThemedText>
-            <ThemedText style={styles.infoText}>Joined {userData.joinedDate}</ThemedText>
+            <ThemedText style={styles.infoText}>
+              Joined {userData.joinedDate}
+            </ThemedText>
           </View>
         </ThemedView>
 
@@ -304,19 +331,27 @@ export default function Profile() {
           </ThemedText>
           <View style={styles.statsGrid}>
             <ThemedView style={styles.statCard}>
-              <ThemedText style={styles.statValue}>{userStats.totalHours}h</ThemedText>
+              <ThemedText style={styles.statValue}>
+                {userStats.totalHours}h
+              </ThemedText>
               <ThemedText style={styles.statLabel}>Total Hours</ThemedText>
             </ThemedView>
             <ThemedView style={styles.statCard}>
-              <ThemedText style={styles.statValue}>{userStats.totalSessions}</ThemedText>
+              <ThemedText style={styles.statValue}>
+                {userStats.totalSessions}
+              </ThemedText>
               <ThemedText style={styles.statLabel}>Total Sessions</ThemedText>
             </ThemedView>
             <ThemedView style={styles.statCard}>
-              <ThemedText style={styles.statValue}>{userStats.currentStreak}</ThemedText>
+              <ThemedText style={styles.statValue}>
+                {userStats.currentStreak}
+              </ThemedText>
               <ThemedText style={styles.statLabel}>Current Streak</ThemedText>
             </ThemedView>
             <ThemedView style={styles.statCard}>
-              <ThemedText style={styles.statValue}>{userStats.averagePerDay}h</ThemedText>
+              <ThemedText style={styles.statValue}>
+                {userStats.averagePerDay}h
+              </ThemedText>
               <ThemedText style={styles.statLabel}>Daily Average</ThemedText>
             </ThemedView>
           </View>
@@ -333,18 +368,28 @@ export default function Profile() {
                 key={item.id}
                 style={[
                   styles.settingItem,
-                  index === settingsItems.length - 1 && { borderBottomWidth: 0 },
+                  index === settingsItems.length - 1 && {
+                    borderBottomWidth: 0,
+                  },
                 ]}
                 onPress={item.onPress}
               >
                 <ThemedText style={styles.settingIcon}>{item.icon}</ThemedText>
                 <View style={styles.settingContent}>
-                  <ThemedText style={styles.settingTitle}>{item.title}</ThemedText>
+                  <ThemedText style={styles.settingTitle}>
+                    {item.title}
+                  </ThemedText>
                   {item.subtitle && (
-                    <ThemedText style={styles.settingSubtitle}>{item.subtitle}</ThemedText>
+                    <ThemedText style={styles.settingSubtitle}>
+                      {item.subtitle}
+                    </ThemedText>
                   )}
                 </View>
-                <ThemedText style={styles.chevron}>›</ThemedText>
+                {item.id === 'signout' && isSigningOut ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <ThemedText style={styles.chevron}>›</ThemedText>
+                )}
               </TouchableOpacity>
             ))}
           </ThemedView>

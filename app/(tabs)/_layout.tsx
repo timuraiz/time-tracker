@@ -12,15 +12,12 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].primary,
         tabBarInactiveTintColor: Colors[colorScheme ?? "light"].icon,
         headerShown: false,
         tabBarButton: HapticTab,
-        // tabBarStyle: {
-        //   borderTopWidth: 0, // Remove top border
-        //   ba
-        // },
       }}
     >
       <Tabs.Screen
@@ -70,7 +67,7 @@ export default function TabLayout() {
               >
                 <IconSymbol
                   size={focused ? 28 : 24}
-                  name="house.fill"
+                  name="alarm.fill"
                   color="#ffffff"
                 />
               </View>
