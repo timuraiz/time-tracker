@@ -1,8 +1,9 @@
+import { ThemedOneLineText } from "@/components/themed-one-line-text";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjects } from "@/hooks/use-projects";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useState } from "react";
 import {
@@ -19,7 +20,8 @@ import {
 interface ProjectsModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelectProject: (project: any) => void;
+  onProjectSelect?: (projectId: string) => void;
+  readOnly?: boolean;
 }
 
 const PROJECT_COLORS = [
@@ -36,7 +38,8 @@ const PROJECT_COLORS = [
 export default function ProjectsModal({
   visible,
   onClose,
-  onSelectProject,
+  onProjectSelect,
+  readOnly = false,
 }: ProjectsModalProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
@@ -291,16 +294,16 @@ export default function ProjectsModal({
     },
   });
 
-  console.log("Projects:", projects);
-  console.log("Projects length:", projects.length);
-  console.log("Is loading:", isLoading);
-
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <ThemedView style={styles.modalContent}>
           <ThemedView style={styles.header}>
-            <ThemedText style={styles.title}>Manage Projects</ThemedText>
+            {!readOnly ? (
+              <ThemedText style={styles.title}>Manage Projects</ThemedText>
+            ) : (
+              <ThemedText style={styles.title}>Projects</ThemedText>
+            )}
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <ThemedText style={styles.closeButtonText}>✕</ThemedText>
             </TouchableOpacity>
@@ -326,7 +329,7 @@ export default function ProjectsModal({
                   <TouchableOpacity
                     key={project.id}
                     style={styles.projectCard}
-                    onPress={() => onSelectProject(project)}
+                    onPress={() => onProjectSelect?.(project.id)}
                   >
                     <View
                       style={[
@@ -335,28 +338,34 @@ export default function ProjectsModal({
                       ]}
                     />
                     <View style={styles.projectInfo}>
-                      <ThemedText style={styles.projectName}>
+                      <ThemedOneLineText style={styles.projectName}>
                         {project.name}
-                      </ThemedText>
+                      </ThemedOneLineText>
                       {project.description ? (
-                        <ThemedText style={styles.projectDescription}>
+                        <ThemedOneLineText style={styles.projectDescription}>
                           {project.description}
-                        </ThemedText>
+                        </ThemedOneLineText>
                       ) : null}
                     </View>
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => handleDeleteProject(project.id)}
-                    >
-                      <MaterialIcons name="delete" size={20} color="#e74c3c" />
-                    </TouchableOpacity>
+                    {!readOnly && (
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => handleDeleteProject(project.id)}
+                      >
+                        <MaterialIcons
+                          name="delete"
+                          size={20}
+                          color="#e74c3c"
+                        />
+                      </TouchableOpacity>
+                    )}
                   </TouchableOpacity>
                 ))
               )}
             </ScrollView>
           )}
 
-          {!showCreateForm && (
+          {!readOnly && !showCreateForm && (
             <TouchableOpacity
               style={styles.createButton}
               onPress={() => setShowCreateForm(true)}
@@ -367,7 +376,7 @@ export default function ProjectsModal({
             </TouchableOpacity>
           )}
 
-          {showCreateForm && (
+          {!readOnly && showCreateForm && (
             <ThemedView style={styles.createForm}>
               <ThemedText style={styles.formTitle}>New Project</ThemedText>
 

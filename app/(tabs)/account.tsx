@@ -41,10 +41,6 @@ export default function Profile() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
 
-  console.log("access_token", session?.access_token);
-  console.log("expires_in", session?.expires_in);
-  console.log("expires_at", session?.expires_at);
-
   // User data from auth context
   const userData = {
     name: profile?.name || session?.user?.user_metadata?.name || "User",

@@ -1,36 +1,45 @@
-import { useEffect, useState } from 'react';
-import { useTimeEntriesOffline } from './useTimeEntriesOffline';
+import { useEffect, useState } from "react";
+import { useColorScheme } from "./use-color-scheme";
+import { useProjects } from "./use-projects";
+import { useTimeEntriesWithStorage } from "./use-time-entries-with-storage";
 
 export interface TimeEntry {
   id?: string;
   project: string;
+  color: string;
   startTime: Date;
   endTime?: Date;
   duration: number;
 }
 
-export function useTimer() {
+export function useTimer(selectedProject?: {
+  name: string;
+  id: string;
+  color: string;
+}) {
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
 
+  const colorsScheme = useColorScheme();
+
   const {
-    timeEntries: apiTimeEntries,
+    timeEntries,
     isLoading: isLoadingEntries,
     isOnline,
+    isSyncing,
     createTimeEntry,
     updateTimeEntry,
-  } = useTimeEntriesOffline();
+    syncWithProjects,
+  } = useTimeEntriesWithStorage();
 
-  // Transform API data to match our UI TimeEntry interface
-  const timeEntries: TimeEntry[] = apiTimeEntries.map((entry) => ({
-    id: entry.id,
-    project: entry.project_name,
-    startTime: new Date(entry.start_time),
-    endTime: entry.end_time ? new Date(entry.end_time) : undefined,
-    duration: entry.duration ? entry.duration * 1000 : 0, // Convert seconds to milliseconds
-  }));
+  const projects = useProjects();
+
+  // Sync time entries with project changes
+  useEffect(() => {
+    syncWithProjects();
+  }, [projects]);
 
   // Timer interval effect
   useEffect(() => {
@@ -62,40 +71,48 @@ export function useTimer() {
 
   const handleStartStop = async () => {
     if (isRunning) {
-      // Stop timer - update existing entry
+      // Stop timer
       const endTime = new Date();
+      setIsRunning(false);
+      setStartTime(null);
+      setElapsedTime(0);
+      const entryId = currentEntryId;
+      setCurrentEntryId(null);
 
-      if (currentEntryId) {
+      // Make API request (React Query will handle optimistic updates)
+      if (entryId) {
         try {
-          updateTimeEntry(currentEntryId, {
-            project_name: "Building Dreams",
+          await updateTimeEntry({
+            id: entryId,
             end_time: endTime.toISOString(),
           });
         } catch (error) {
           console.error("Error updating time entry:", error);
+          // Revert local timer state on error
+          setIsRunning(true);
+          setStartTime(new Date(Date.now() - elapsedTime));
+          setCurrentEntryId(entryId);
         }
       }
-
-      setIsRunning(false);
-      setStartTime(null);
-      setElapsedTime(0);
-      setCurrentEntryId(null);
     } else {
-      // Start timer - create new entry
+      // Start timer
       const startTime = new Date();
       setIsRunning(true);
       setStartTime(startTime);
 
+      // Make API request (React Query will handle optimistic updates)
       try {
         const newEntry = await createTimeEntry({
-          project_name: "Building Dreams",
+          project_id: selectedProject?.id,
           start_time: startTime.toISOString(),
         });
 
-        setCurrentEntryId(newEntry.id);
+        if (newEntry?.id) {
+          setCurrentEntryId(newEntry.id);
+        }
       } catch (error) {
         console.error("Error creating time entry:", error);
-        // Revert state on error
+        // Revert local timer state on error
         setIsRunning(false);
         setStartTime(null);
       }
@@ -133,6 +150,7 @@ export function useTimer() {
     timeEntries,
     isLoadingEntries,
     isOnline,
+    isSyncing,
 
     // Actions
     handleStartStop,

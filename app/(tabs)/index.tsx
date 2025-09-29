@@ -1,20 +1,34 @@
+import ProjectsModal from "@/components/projects-modal";
+import { ThemedOneLineText } from "@/components/themed-one-line-text";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useTimer } from "@/hooks/useTimer";
-import React from "react";
+import { useProjects } from "@/hooks/use-projects";
+import { useTimer } from "@/hooks/use-timer";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? ("light" as keyof typeof Colors)];
+
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+
+  const { projects } = useProjects();
+  const selectedProject =
+    projects.find((p) => p.id === selectedProjectId) || projects[0];
 
   const {
     isRunning,
@@ -27,7 +41,7 @@ export default function HomeScreen() {
     getTotalDuration,
     getTodaySessionsCount,
     formatTime,
-  } = useTimer();
+  } = useTimer(selectedProject);
 
   const styles = StyleSheet.create({
     container: {
@@ -61,13 +75,35 @@ export default function HomeScreen() {
       backgroundColor: colors.cardBackground,
     },
     projectSection: {
+      flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
       marginBottom: 32,
-      backgroundColor: colors.cardBackground,
+      padding: 12,
+      paddingHorizontal: 50,
+      paddingLeft: 70,
+      borderRadius: 8,
+    },
+    projectNameContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+    projectColorIndicator: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    recentColorIndicator: {
+      width: 8,
+      height: 8,
+      borderRadius: 6,
     },
     projectName: {
       fontSize: 20,
       fontWeight: "600",
+      textAlign: "center",
     },
     timerDisplay: {
       marginBottom: 40,
@@ -238,11 +274,29 @@ export default function HomeScreen() {
     <ScrollView style={styles.container}>
       <SafeAreaView>
         <ThemedView style={styles.timerCard}>
-          <ThemedView style={styles.projectSection}>
-            <ThemedText type="subtitle" style={styles.projectName}>
-              Building Dreams
-            </ThemedText>
-          </ThemedView>
+          <TouchableOpacity
+            style={styles.projectSection}
+            onPress={() => setShowProjectsModal(true)}
+          >
+            <View style={styles.projectNameContainer}>
+              {selectedProject?.color && (
+                <View
+                  style={[
+                    styles.projectColorIndicator,
+                    { backgroundColor: selectedProject.color },
+                  ]}
+                />
+              )}
+              <ThemedOneLineText type="subtitle" style={styles.projectName}>
+                {selectedProject?.name || "Select Project"}
+              </ThemedOneLineText>
+            </View>
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={24}
+              color={colors.icon}
+            />
+          </TouchableOpacity>
 
           <ThemedView style={styles.timerDisplay}>
             <ThemedText style={styles.timerText}>
@@ -312,9 +366,23 @@ export default function HomeScreen() {
                 style={styles.entryRow}
               >
                 <ThemedView style={styles.entryInfo}>
-                  <ThemedText style={styles.entryProject}>
-                    {entry.project}
-                  </ThemedText>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.recentColorIndicator,
+                        { backgroundColor: entry.color },
+                      ]}
+                    />
+                    <ThemedOneLineText style={styles.entryProject}>
+                      {entry.project}
+                    </ThemedOneLineText>
+                  </View>
                   <ThemedText style={styles.entryTime}>
                     {entry.startTime.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -339,6 +407,16 @@ export default function HomeScreen() {
           )}
         </ThemedView>
       </SafeAreaView>
+
+      <ProjectsModal
+        visible={showProjectsModal}
+        onClose={() => setShowProjectsModal(false)}
+        onProjectSelect={(projectId) => {
+          setSelectedProjectId(projectId);
+          setShowProjectsModal(false);
+        }}
+        readOnly={true}
+      />
     </ScrollView>
   );
 }

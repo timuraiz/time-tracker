@@ -57,9 +57,9 @@ class TimeEntriesStorage {
   // Update existing time entry
   async updateTimeEntry(id: string, updates: Partial<LocalTimeEntry>): Promise<void> {
     const entries = await this.getTimeEntries();
-    const updatedEntries = entries.map(entry =>
+    const updatedEntries: LocalTimeEntry[] = entries.map(entry =>
       entry.id === id || entry.localId === id
-        ? { ...entry, ...updates, syncStatus: 'pending' }
+        ? { ...entry, ...updates, syncStatus: 'pending' as const }
         : entry
     );
     await this.saveTimeEntries(updatedEntries);

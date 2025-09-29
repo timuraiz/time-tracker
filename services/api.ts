@@ -1,52 +1,48 @@
 
-import { supabase } from '@/lib/supabase.web'
+import { supabase } from "@/lib/supabase.web";
 
 export type CreateTimeEntryRequest = {
-  project_name: string
-  description?: string
-  start_time: string
-}
+  project_id?: string;
+  start_time: string;
+};
 
 export type CreateTimeEntryResponse = {
-    id: string
-    project_name: string
-    description?: string
-    start_time: string
-    end_time?: string
-    duration?: number
-    created_at: string
-  }
+  id: string;
+  project: Project;
+  start_time: string;
+  end_time?: string;
+  duration?: number;
+  created_at: string;
+};
 
 export type UpdateTimeEntryRequest = {
-    id: string
-    project_name: string
-    description?: string
-    end_time: string
-}
+  id: string;
+  end_time: string;
+};
 export type UpdateTimeEntryResponse = {
-    id: string
-    project_name: string
-    description?: string
-    start_time: string
-    end_time?: string
-    duration?: number
-    created_at: string
-}
+  id: string;
+  project: Project;
+  start_time: string;
+  end_time?: string;
+  duration?: number;
+  created_at: string;
+};
 
 export type GetTimeEntriesRequest = {
-    limit?: string
-    page?: string
-}
+  limit?: string;
+  page?: string;
+};
 
 export type GetTimeEntriesResponse = {
-    data: CreateTimeEntryResponse[]
-    limit: number
-    page: number
-    total: number
-    total_pages: number
-}
+  data: CreateTimeEntryResponse[];
+  limit: number;
+  page: number;
+  total: number;
+  total_pages: number;
+};
 
 export type Project = {
+  id: string;
   name: string;
   description: string;
   color: string;
@@ -54,29 +50,29 @@ export type Project = {
 };
 
 export type CreateProjectRequest = {
-  name: string
-  description?: string
-  color: string
-}
+  name: string;
+  description?: string;
+  color: string;
+};
 
-export type CreateProjectResponse = Project
+export type CreateProjectResponse = Project;
 
 export type UpdateProjectRequest = {
-  id: string
-  name?: string
-  description?: string
-  color?: string
-}
+  id: string;
+  name?: string;
+  description?: string;
+  color?: string;
+};
 
-export type UpdateProjectResponse = Project
+export type UpdateProjectResponse = Project;
 
 export type GetProjectsResponse = {
-  data: Project[]
-  limit: number
-  page: number
-  total: number
-  total_pages: number
-}
+  data: Project[];
+  limit: number;
+  page: number;
+  total: number;
+  total_pages: number;
+};
 
 class ApiService {
   url = "http://172.25.196.188:8080/api/v1";
