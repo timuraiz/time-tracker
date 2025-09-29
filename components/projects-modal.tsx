@@ -1,9 +1,10 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useProjects } from '@/hooks/useProjects';
-import React, { useState } from 'react';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useProjects } from "@/hooks/useProjects";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,78 +14,84 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 
 interface ProjectsModalProps {
   visible: boolean;
   onClose: () => void;
+  onSelectProject: (project: any) => void;
 }
 
 const PROJECT_COLORS = [
-  '#007bff', '#28a745', '#ffc107', '#dc3545',
-  '#6f42c1', '#fd7e14', '#20c997', '#6c757d'
+  "#007bff",
+  "#28a745",
+  "#ffc107",
+  "#dc3545",
+  "#6f42c1",
+  "#fd7e14",
+  "#20c997",
+  "#6c757d",
 ];
 
-export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) {
+export default function ProjectsModal({
+  visible,
+  onClose,
+  onSelectProject,
+}: ProjectsModalProps) {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors[colorScheme ?? "light"];
 
-  const {
-    projects,
-    isLoading,
-    createProject,
-    deleteProject,
-  } = useProjects();
+  const { projects, isLoading, createProject, deleteProject } = useProjects();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
   const [selectedColor, setSelectedColor] = useState(PROJECT_COLORS[0]);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) {
-      Alert.alert('Error', 'Please enter a project name');
+      Alert.alert("Error", "Please enter a project name");
       return;
     }
 
     try {
-      await createProject({
+      createProject({
         name: newProjectName.trim(),
         description: newProjectDescription.trim(),
         color: selectedColor,
       });
 
-      setNewProjectName('');
-      setNewProjectDescription('');
+      setNewProjectName("");
+      setNewProjectDescription("");
       setSelectedColor(PROJECT_COLORS[0]);
       setShowCreateForm(false);
 
-      Alert.alert('Success', 'Project created successfully!');
+      Alert.alert("Success", "Project created successfully!");
     } catch {
-      Alert.alert('Error', 'Failed to create project');
+      Alert.alert("Error", "Failed to create project");
     }
   };
 
   const handleDeleteProject = (projectId: string) => {
     if (projects.length === 1) {
-      Alert.alert('Error', 'You must have at least one project');
+      Alert.alert("Error", "You must have at least one project");
       return;
     }
 
     Alert.alert(
-      'Delete Project',
-      'Are you sure you want to delete this project?',
+      "Delete Project",
+      "Are you sure you want to delete this project?",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteProject(projectId);
-              Alert.alert('Success', 'Project deleted successfully!');
+              Alert.alert("Success", "Project deleted successfully!");
             } catch {
-              Alert.alert('Error', 'Failed to delete project');
+              Alert.alert("Error", "Failed to delete project");
             }
           },
         },
@@ -95,83 +102,122 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
   const styles = StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     modalContent: {
-      width: '90%',
-      maxHeight: '80%',
+      width: "90%",
+      maxHeight: "85%",
       backgroundColor: colors.cardBackground,
-      borderRadius: 24,
-      padding: 24,
+      borderRadius: 20,
+      padding: 0,
+      flex: 0,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+      elevation: 10,
     },
     header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 24,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 24,
+      paddingTop: 24,
+      paddingBottom: 20,
+      borderStartStartRadius: 20,
+      borderStartEndRadius: 20,
+      backgroundColor: colors.cardBackground,
     },
     title: {
-      fontSize: 24,
-      fontWeight: 'bold',
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
     },
     closeButton: {
       padding: 8,
+      borderRadius: 20,
     },
     closeButtonText: {
-      fontSize: 18,
-      color: colors.primary,
+      fontSize: 16,
+      color: colors.icon,
+      fontWeight: "600",
     },
     createButton: {
       backgroundColor: colors.primary,
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 12,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 16,
+      alignItems: "center",
+      marginHorizontal: 24,
+      marginTop: 20,
       marginBottom: 16,
-      alignItems: 'center',
+      shadowColor: colors.primary,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
     },
     createButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "700",
+      letterSpacing: 0.5,
     },
     projectsList: {
-      flex: 1,
+      maxHeight: 320,
+      paddingHorizontal: 24,
+      paddingBottom: 10,
     },
     projectCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      borderRadius: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 18,
+      borderRadius: 16,
       backgroundColor: colors.background,
       marginBottom: 12,
-      borderLeftWidth: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
     },
     colorIndicator: {
-      width: 12,
-      height: 40,
-      borderRadius: 6,
+      width: 4,
+      height: 44,
+      borderRadius: 2,
       marginRight: 16,
     },
     projectInfo: {
       flex: 1,
     },
     projectName: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginBottom: 4,
+      fontSize: 17,
+      fontWeight: "600",
+      marginBottom: 2,
+      color: colors.text,
     },
     projectDescription: {
       fontSize: 14,
-      opacity: 0.7,
+      color: colors.icon,
+      lineHeight: 18,
     },
     deleteButton: {
-      padding: 8,
-    },
-    deleteButtonText: {
-      fontSize: 16,
-      color: '#ff4444',
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: "#fff0f0",
     },
     createForm: {
       marginBottom: 16,
@@ -181,7 +227,7 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
     },
     formTitle: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       marginBottom: 16,
     },
     input: {
@@ -199,12 +245,12 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
     },
     colorLabel: {
       fontSize: 14,
-      fontWeight: '600',
+      fontWeight: "600",
       marginBottom: 8,
     },
     colorOptions: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
     },
     colorOption: {
@@ -212,20 +258,20 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
       height: 40,
       borderRadius: 20,
       borderWidth: 3,
-      borderColor: 'transparent',
+      borderColor: "transparent",
     },
     colorOptionSelected: {
       borderColor: colors.text,
     },
     formButtons: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: 12,
     },
     formButton: {
       flex: 1,
       padding: 12,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
     },
     saveButton: {
       backgroundColor: colors.primary,
@@ -235,26 +281,80 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
     },
     formButtonText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     saveButtonText: {
-      color: '#fff',
+      color: "#fff",
     },
     cancelButtonText: {
-      color: '#fff',
+      color: "#fff",
     },
   });
+
+  console.log("Projects:", projects);
+  console.log("Projects length:", projects.length);
+  console.log("Is loading:", isLoading);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <ThemedView style={styles.modalContent}>
-          <View style={styles.header}>
+          <ThemedView style={styles.header}>
             <ThemedText style={styles.title}>Manage Projects</ThemedText>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <ThemedText style={styles.closeButtonText}>✕</ThemedText>
             </TouchableOpacity>
-          </View>
+          </ThemedView>
+
+          {!showCreateForm && (
+            <ScrollView style={styles.projectsList}>
+              {isLoading ? (
+                <View style={{ padding: 20, alignItems: "center" }}>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                  <ThemedText style={{ marginTop: 10, opacity: 0.7 }}>
+                    Loading projects...
+                  </ThemedText>
+                </View>
+              ) : projects.length === 0 ? (
+                <View style={{ padding: 20, alignItems: "center" }}>
+                  <ThemedText style={{ opacity: 0.7 }}>
+                    No projects yet. Create your first project!
+                  </ThemedText>
+                </View>
+              ) : (
+                projects.map((project) => (
+                  <TouchableOpacity
+                    key={project.id}
+                    style={styles.projectCard}
+                    onPress={() => onSelectProject(project)}
+                  >
+                    <View
+                      style={[
+                        styles.colorIndicator,
+                        { backgroundColor: project.color },
+                      ]}
+                    />
+                    <View style={styles.projectInfo}>
+                      <ThemedText style={styles.projectName}>
+                        {project.name}
+                      </ThemedText>
+                      {project.description ? (
+                        <ThemedText style={styles.projectDescription}>
+                          {project.description}
+                        </ThemedText>
+                      ) : null}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteProject(project.id)}
+                    >
+                      <MaterialIcons name="delete" size={20} color="#e74c3c" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+          )}
 
           {!showCreateForm && (
             <TouchableOpacity
@@ -310,7 +410,9 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
                   style={[styles.formButton, styles.cancelButton]}
                   onPress={() => setShowCreateForm(false)}
                 >
-                  <ThemedText style={[styles.formButtonText, styles.cancelButtonText]}>
+                  <ThemedText
+                    style={[styles.formButtonText, styles.cancelButtonText]}
+                  >
                     Cancel
                   </ThemedText>
                 </TouchableOpacity>
@@ -318,52 +420,15 @@ export default function ProjectsModal({ visible, onClose }: ProjectsModalProps) 
                   style={[styles.formButton, styles.saveButton]}
                   onPress={handleCreateProject}
                 >
-                  <ThemedText style={[styles.formButtonText, styles.saveButtonText]}>
+                  <ThemedText
+                    style={[styles.formButtonText, styles.saveButtonText]}
+                  >
                     Create
                   </ThemedText>
                 </TouchableOpacity>
               </View>
             </ThemedView>
           )}
-
-          <ScrollView style={styles.projectsList}>
-            {isLoading ? (
-              <View style={{ padding: 20, alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <ThemedText style={{ marginTop: 10, opacity: 0.7 }}>
-                  Loading projects...
-                </ThemedText>
-              </View>
-            ) : projects.length === 0 ? (
-              <View style={{ padding: 20, alignItems: 'center' }}>
-                <ThemedText style={{ opacity: 0.7 }}>
-                  No projects yet. Create your first project!
-                </ThemedText>
-              </View>
-            ) : (
-              projects.map((project) => (
-              <View key={project.id} style={styles.projectCard}>
-                <View
-                  style={[styles.colorIndicator, { backgroundColor: project.color }]}
-                />
-                <View style={styles.projectInfo}>
-                  <ThemedText style={styles.projectName}>{project.name}</ThemedText>
-                  {project.description ? (
-                    <ThemedText style={styles.projectDescription}>
-                      {project.description}
-                    </ThemedText>
-                  ) : null}
-                </View>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteProject(project.id)}
-                >
-                  <ThemedText style={styles.deleteButtonText}>🗑️</ThemedText>
-                </TouchableOpacity>
-              </View>
-              ))
-            )}
-          </ScrollView>
         </ThemedView>
       </View>
     </Modal>

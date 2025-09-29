@@ -47,12 +47,11 @@ export type GetTimeEntriesResponse = {
 }
 
 export type Project = {
-  id: string
-  name: string
-  description: string
-  color: string
-  created_at: string
-}
+  name: string;
+  description: string;
+  color: string;
+  created_at: string;
+};
 
 export type CreateProjectRequest = {
   name: string
@@ -80,97 +79,119 @@ export type GetProjectsResponse = {
 }
 
 class ApiService {
+  url = "http://172.25.196.188:8080/api/v1";
 
-  url = 'http://192.168.0.130:8080/api/v1'
-
-  private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<{ data: any | null; error: any }> {
-    const { data: { session } } = await supabase.auth.getSession()
+  private async makeRequest(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<{ data: any | null; error: any }> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-      return { data: null, error: new Error('Not authenticated') }
+      return { data: null, error: new Error("Not authenticated") };
     }
 
     try {
       const response = await fetch(this.url + endpoint, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
           ...options.headers,
         },
-      })
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`)
+        throw new Error(
+          `HTTP error! status: ${response.status}, body: ${errorText}`
+        );
       }
 
-      const data = await response.json()
-      return { data, error: null }
+      const data = await response.json();
+      return { data, error: null };
     } catch (error) {
-      return { data: null, error }
+      return { data: null, error };
     }
   }
 
-  async createTimeEntry(params: CreateTimeEntryRequest): Promise<{ data: CreateTimeEntryResponse | null; error: any }> {
-    return this.makeRequest('/time-entries', {
-      method: 'POST',
+  async createTimeEntry(
+    params: CreateTimeEntryRequest
+  ): Promise<{ data: CreateTimeEntryResponse | null; error: any }> {
+    return this.makeRequest("/time-entries", {
+      method: "POST",
       body: JSON.stringify(params),
-    })
+    });
   }
 
-  async updateTimeEntry(params: UpdateTimeEntryRequest): Promise<{ data: UpdateTimeEntryResponse | null; error: any }> {
+  async updateTimeEntry(
+    params: UpdateTimeEntryRequest
+  ): Promise<{ data: UpdateTimeEntryResponse | null; error: any }> {
     return this.makeRequest(`/time-entries/${params.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params),
-    })
+    });
   }
 
-  async getTimeEntries(params: GetTimeEntriesRequest = {}): Promise<{ data: GetTimeEntriesResponse | null; error: any }> {
+  async getTimeEntries(
+    params: GetTimeEntriesRequest = {}
+  ): Promise<{ data: GetTimeEntriesResponse | null; error: any }> {
     const searchParams = new URLSearchParams();
-    if (params.limit) searchParams.set('limit', params.limit);
-    if (params.page) searchParams.set('page', params.page);
+    if (params.limit) searchParams.set("limit", params.limit);
+    if (params.page) searchParams.set("page", params.page);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString ? `/time-entries?${queryString}` : '/time-entries';
+    const endpoint = queryString
+      ? `/time-entries?${queryString}`
+      : "/time-entries";
 
     return this.makeRequest(endpoint, {
-      method: 'GET',
-    })
+      method: "GET",
+    });
   }
 
   // Project methods
-  async createProject(params: CreateProjectRequest): Promise<{ data: CreateProjectResponse | null; error: any }> {
-    return this.makeRequest('/projects', {
-      method: 'POST',
+  async createProject(
+    params: CreateProjectRequest
+  ): Promise<{ data: CreateProjectResponse | null; error: any }> {
+    return this.makeRequest("/projects", {
+      method: "POST",
       body: JSON.stringify(params),
-    })
+    });
   }
 
-  async updateProject(params: UpdateProjectRequest): Promise<{ data: UpdateProjectResponse | null; error: any }> {
+  async updateProject(
+    params: UpdateProjectRequest
+  ): Promise<{ data: UpdateProjectResponse | null; error: any }> {
     return this.makeRequest(`/projects/${params.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(params),
-    })
+    });
   }
 
-  async deleteProject(projectId: string): Promise<{ data: any | null; error: any }> {
+  async deleteProject(
+    projectId: string
+  ): Promise<{ data: any | null; error: any }> {
     return this.makeRequest(`/projects/${projectId}`, {
-      method: 'DELETE',
-    })
+      method: "DELETE",
+    });
   }
 
-  async getProjects(params: GetTimeEntriesRequest = {}): Promise<{ data: GetProjectsResponse | null; error: any }> {
+  async getProjects(
+    params: GetTimeEntriesRequest = {}
+  ): Promise<{ data: GetProjectsResponse | null; error: any }> {
     const searchParams = new URLSearchParams();
-    if (params.limit) searchParams.set('limit', params.limit);
-    if (params.page) searchParams.set('page', params.page);
+    if (params.limit) searchParams.set("limit", params.limit);
+    if (params.page) searchParams.set("page", params.page);
 
     const queryString = searchParams.toString();
-    const endpoint = queryString ? `/projects?${queryString}` : '/projects';
+    const endpoint = queryString ? `/projects?${queryString}` : "/projects";
 
     return this.makeRequest(endpoint, {
-      method: 'GET',
-    })
+      method: "GET",
+    });
   }
 }
 
