@@ -27,8 +27,13 @@ export default function HomeScreen() {
   );
 
   const { projects } = useProjects();
-  const selectedProject =
-    projects.find((p) => p.id === selectedProjectId) || projects[0];
+  const selectedProject = projects.find((p) => p.id === selectedProjectId) || {
+    id: "general",
+    name: "General",
+    color: colors.primary,
+    description: "",
+    created_at: new Date().toISOString(),
+  };
 
   const {
     isRunning,

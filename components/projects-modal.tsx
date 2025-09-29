@@ -68,19 +68,12 @@ export default function ProjectsModal({
       setNewProjectDescription("");
       setSelectedColor(PROJECT_COLORS[0]);
       setShowCreateForm(false);
-
-      Alert.alert("Success", "Project created successfully!");
     } catch {
       Alert.alert("Error", "Failed to create project");
     }
   };
 
   const handleDeleteProject = (projectId: string) => {
-    if (projects.length === 1) {
-      Alert.alert("Error", "You must have at least one project");
-      return;
-    }
-
     Alert.alert(
       "Delete Project",
       "Are you sure you want to delete this project?",
@@ -92,7 +85,6 @@ export default function ProjectsModal({
           onPress: async () => {
             try {
               await deleteProject(projectId);
-              Alert.alert("Success", "Project deleted successfully!");
             } catch {
               Alert.alert("Error", "Failed to delete project");
             }
@@ -321,7 +313,9 @@ export default function ProjectsModal({
               ) : projects.length === 0 ? (
                 <View style={{ padding: 20, alignItems: "center" }}>
                   <ThemedText style={{ opacity: 0.7 }}>
-                    No projects yet. Create your first project!
+                    {readOnly
+                      ? "No projects yet. Create your first project in Profile tab!"
+                      : "No projects yet. Create your first project!"}
                   </ThemedText>
                 </View>
               ) : (
