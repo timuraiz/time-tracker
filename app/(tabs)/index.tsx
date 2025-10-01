@@ -2,6 +2,7 @@ import ProjectsModal from "@/components/projects-modal";
 import { ThemedOneLineText } from "@/components/themed-one-line-text";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProjects } from "@/hooks/use-projects";
@@ -9,7 +10,6 @@ import { useTimer } from "@/hooks/use-timer";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -355,7 +355,7 @@ export default function HomeScreen() {
           </ThemedView>
           {isLoadingEntries ? (
             <ThemedView style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.primary} />
+              <LoadingSpinner size={20} />
               <ThemedText style={styles.loadingText}>
                 Loading sessions...
               </ThemedText>

@@ -1,13 +1,13 @@
 import { ThemedOneLineText } from "@/components/themed-one-line-text";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useProjects } from "@/hooks/use-projects";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   ScrollView,
@@ -212,7 +212,7 @@ export default function ProjectsModal({
     deleteButton: {
       padding: 10,
       borderRadius: 8,
-      backgroundColor: "#fff0f0",
+      backgroundColor: colors.deleteButtonBackground,
     },
     createForm: {
       marginBottom: 16,
@@ -305,7 +305,7 @@ export default function ProjectsModal({
             <ScrollView style={styles.projectsList}>
               {isLoading ? (
                 <View style={{ padding: 20, alignItems: "center" }}>
-                  <ActivityIndicator size="large" color={colors.primary} />
+                  <LoadingSpinner size={32} />
                   <ThemedText style={{ marginTop: 10, opacity: 0.7 }}>
                     Loading projects...
                   </ThemedText>

@@ -1,13 +1,14 @@
+import { LoadingSpinner } from "@/components/loading-spinner";
 import ProjectsModal from "@/components/projects-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useAuthContext } from "@/hooks/use-auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useGetProfile } from "@/hooks/use-profile";
 import { supabase } from "@/lib/supabase.web";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -37,19 +38,26 @@ interface SettingsItem {
 export default function Profile() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
-  const { session, profile } = useAuthContext();
+  const { session } = useAuthContext();
+  const { data: profileData } = useGetProfile();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
 
-  // User data from auth context
+  console.log("data", profileData);
+
+  // User data from API
   const userData = {
-    name: profile?.name || session?.user?.user_metadata?.name || "User",
-    email: session?.user?.email || "user@example.com",
+    name:
+      profileData?.data?.name || session?.user?.user_metadata?.name || "User",
+    email: session?.user?.email,
     avatarUrl:
+      profileData?.data?.profile_picture_url ||
       session?.user?.user_metadata?.avatar_url ||
-      "https://i.pravatar.cc/150?img=1",
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        profileData?.data?.name || session?.user?.user_metadata?.name || "User"
+      )}&background=3b82f6&color=fff&size=200`,
     joinedDate: new Date(
-      session?.user?.created_at || Date.now()
+      profileData?.data?.created_at || session?.user?.created_at || Date.now()
     ).toLocaleDateString("en-US", { month: "long", year: "numeric" }),
     rank: "#1",
     level: "Master",
@@ -183,9 +191,9 @@ export default function Profile() {
       alignItems: "center",
     },
     avatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
       marginBottom: 16,
       borderWidth: 3,
       borderColor: colors.primary,
@@ -241,10 +249,10 @@ export default function Profile() {
       borderRadius: 16,
       backgroundColor: colors.cardBackground,
       shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
       marginBottom: 12,
       alignItems: "center",
     },
@@ -268,10 +276,10 @@ export default function Profile() {
       borderRadius: 16,
       backgroundColor: colors.cardBackground,
       shadowColor: colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
     },
     settingItem: {
       flexDirection: "row",
@@ -404,7 +412,7 @@ export default function Profile() {
                   )}
                 </View>
                 {item.id === "signout" && isSigningOut ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
+                  <LoadingSpinner size={18} />
                 ) : (
                   <ThemedText style={styles.chevron}>›</ThemedText>
                 )}

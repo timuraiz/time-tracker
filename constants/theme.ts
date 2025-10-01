@@ -24,6 +24,7 @@ export const Colors = {
     danger: "#ef4444",
     border: "#f3f4f6",
     shadow: "#000",
+    deleteButtonBackground: "#fff0f0",
   },
   dark: {
     text: "#ECEDEE",
@@ -40,6 +41,7 @@ export const Colors = {
     danger: "#ef4444",
     border: "#374151",
     shadow: "#000",
+    deleteButtonBackground: "#3f1f1f",
   },
 };
 

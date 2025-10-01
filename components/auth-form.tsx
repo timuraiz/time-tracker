@@ -1,9 +1,10 @@
-import { ThemedText } from '@/components/themed-text'
-import { ThemedView } from '@/components/themed-view'
-import { Colors } from '@/constants/theme'
-import { useColorScheme } from '@/hooks/use-color-scheme'
-import { supabase } from '@/lib/supabase.web'
-import React, { useState } from 'react'
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useCreateProfile } from "@/hooks/use-profile";
+import { supabase } from "@/lib/supabase.web";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AuthForm() {
   const [email, setEmail] = useState("");
@@ -26,6 +27,7 @@ export default function AuthForm() {
   const [pendingEmail, setPendingEmail] = useState("");
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  const createProfileMutation = useCreateProfile();
 
   async function signInWithOtp() {
     setIsLoading(true);
@@ -48,6 +50,8 @@ export default function AuthForm() {
 
   async function signUpWithOtp() {
     setIsLoading(true);
+    console.log(name);
+    console.log(email);
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -59,6 +63,7 @@ export default function AuthForm() {
     });
 
     if (error) {
+      console.log(error);
       Alert.alert("Error", error.message);
     } else {
       setPendingEmail(email);
@@ -76,12 +81,21 @@ export default function AuthForm() {
     const { error } = await supabase.auth.verifyOtp({
       email: pendingEmail,
       token: otp,
-      type: isSignUp ? "signup" : "email",
+      type: "email",
     });
 
     if (error) {
       Alert.alert("Error", error.message);
     } else {
+      // Create profile after successful signup verification
+      if (isSignUp) {
+        try {
+          await createProfileMutation.mutateAsync({ name });
+        } catch (profileError) {
+          console.error("Error creating profile:", profileError);
+        }
+      }
+
       Alert.alert(
         "Success",
         isSignUp ? "Account created successfully!" : "Signed in successfully!"

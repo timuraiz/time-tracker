@@ -74,8 +74,25 @@ export type GetProjectsResponse = {
   total_pages: number;
 };
 
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  profile_picture_url?: string;
+  created_at: string;
+};
+
+export type GetUserResponse = User;
+
+export type CreateUserRequest = {
+  name: string;
+};
+
+export type CreateUserResponse = User;
+export type UpdateUserResponse = User;
+
 class ApiService {
-  url = "http://172.25.196.188:8080/api/v1";
+  url = "http://172.25.196.253:8080/api/v1";
 
   private async makeRequest(
     endpoint: string,
@@ -85,6 +102,7 @@ class ApiService {
       data: { session },
     } = await supabase.auth.getSession();
 
+    console.log("session?.access_token)", session?.access_token);
     if (!session?.access_token) {
       return { data: null, error: new Error("Not authenticated") };
     }
@@ -189,6 +207,39 @@ class ApiService {
       method: "GET",
     });
   }
+
+  async getUser(): Promise<{
+    data: GetUserResponse | null;
+    error: any;
+  }> {
+    return this.makeRequest("/profile", {
+      method: "GET",
+    });
+  }
+  async createUser(params: CreateUserRequest): Promise<{
+    data: GetUserResponse | null;
+    error: any;
+  }> {
+    return this.makeRequest("/profile", {
+      method: "POST",
+      body: JSON.stringify(params),
+    });
+  }
+  // async updateUserPicture(): Promise<{
+  //   data: GetUserResponse | null;
+  //   error: any;
+  // }> {
+  //   return this.makeRequest("/profile", {
+  //     method: "UPDATE",
+  //   });
+  // }
+  // async deleteUser(): Promise<{
+  //   error: any;
+  // }> {
+  //   return this.makeRequest("/profile", {
+  //     method: "DELETE",
+  //   });
+  // }
 }
 
 export const apiService = new ApiService()
