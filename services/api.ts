@@ -82,7 +82,20 @@ export type User = {
   created_at: string;
 };
 
-export type GetUserResponse = User;
+export type GetUserResponse = {
+  id: string;
+  name: string;
+  email: string;
+  profile_picture_url?: string;
+  total_hours: number;
+  total_sessions: number;
+  current_streak: number;
+  dayily_avg: number;
+  rank: string;
+  level_color: string;
+  level: string;
+  created_at: string;
+};
 
 export type CreateUserRequest = {
   name: string;

@@ -3,14 +3,11 @@ import ProjectsModal from "@/components/projects-modal";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
-import { useAuthContext } from "@/hooks/use-auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useImagePicker } from "@/hooks/use-image-picker";
-import { useGetProfile, useUploadProfilePicture } from "@/hooks/use-profile";
-import { supabase } from "@/lib/supabase.web";
+import { useUserData, useUserStats } from "@/hooks/use-profile";
+import { useProfileActions } from "@/hooks/use-profile-actions";
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -18,15 +15,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface UserStats {
-  totalHours: number;
-  totalSessions: number;
-  longestStreak: number;
-  currentStreak: number;
-  averagePerDay: number;
-  level: string;
-}
 
 interface SettingsItem {
   id: string;
@@ -39,75 +27,11 @@ interface SettingsItem {
 export default function Profile() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
-  const { session } = useAuthContext();
-  const { data: profileData } = useGetProfile();
-  const uploadProfilePictureMutation = useUploadProfilePicture();
-  const { pickImage } = useImagePicker();
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const userData = useUserData();
+  const userStats = useUserStats();
+  const { handleUploadPicture, handleSignOut, isSigningOut } =
+    useProfileActions();
   const [showProjectsModal, setShowProjectsModal] = useState(false);
-  // User data from API
-  const userData = {
-    name:
-      profileData?.data?.name || session?.user?.user_metadata?.name || "User",
-    email: session?.user?.email,
-    avatarUrl:
-      profileData?.data?.profile_picture_url ||
-      session?.user?.user_metadata?.avatar_url ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        profileData?.data?.name || session?.user?.user_metadata?.name || "User"
-      )}&background=3b82f6&color=fff&size=200`,
-    joinedDate: new Date(
-      profileData?.data?.created_at || session?.user?.created_at || Date.now()
-    ).toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-    rank: "#1",
-    level: "Master",
-  };
-
-  const userStats: UserStats = {
-    totalHours: 142.5,
-    totalSessions: 89,
-    longestStreak: 21,
-    currentStreak: 15,
-    averagePerDay: 4.2,
-    level: "Master",
-  };
-
-  const handleUploadPicture = async () => {
-    const image = await pickImage();
-    if (!image) return;
-
-    try {
-      const response = await uploadProfilePictureMutation.mutateAsync(image);
-      if (response.error) {
-        throw response.error;
-      }
-    } catch (error) {
-      console.error("Error uploading picture:", error);
-      Alert.alert("Error", "Failed to upload profile picture");
-    }
-  };
-
-  const handleSignOut = async () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          setIsSigningOut(true);
-          const { error } = await supabase.auth.signOut();
-          if (error) {
-            console.error("Error signing out:", error);
-            Alert.alert("Error", "Failed to sign out");
-          }
-          setIsSigningOut(false);
-        },
-      },
-    ]);
-  };
 
   const settingsItems: SettingsItem[] = [
     {
@@ -160,19 +84,6 @@ export default function Profile() {
       onPress: handleSignOut,
     },
   ];
-
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "Master":
-        return "#ffd700";
-      case "Expert":
-        return "#ff6b6b";
-      case "Pro":
-        return "#4ecdc4";
-      default:
-        return colors.primary;
-    }
-  };
 
   const styles = StyleSheet.create({
     container: {
@@ -335,30 +246,19 @@ export default function Profile() {
           <TouchableOpacity onPress={handleUploadPicture} activeOpacity={0.7}>
             <Image source={{ uri: userData.avatarUrl }} style={styles.avatar} />
           </TouchableOpacity>
-          <ThemedView
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-              backgroundColor: colors.cardBackground,
-            }}
-          >
-            <ThemedText style={styles.online}>🕯️</ThemedText>
-            <ThemedText style={styles.userName}>{userData.name}</ThemedText>
-          </ThemedView>
+          <ThemedText style={styles.userName}>{userData.name}</ThemedText>
           <ThemedText style={styles.userEmail}>{userData.email}</ThemedText>
           <View
             style={[
               styles.levelBadge,
-              { backgroundColor: getLevelColor(userData.level) },
+              { backgroundColor: userData.levelColor },
             ]}
           >
             <ThemedText style={styles.levelText}>{userData.level}</ThemedText>
           </View>
           <View style={styles.userInfo}>
             <ThemedText style={styles.infoText}>
-              Rank: {userData.rank}
+              Rank: #{userData.rank}
             </ThemedText>
             <ThemedText style={styles.infoText}>•</ThemedText>
             <ThemedText style={styles.infoText}>
