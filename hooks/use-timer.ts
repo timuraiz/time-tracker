@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useColorScheme } from "./use-color-scheme";
 import { useProjects } from "./use-projects";
 import { useTimeEntriesWithStorage } from "./use-time-entries-with-storage";
 
@@ -21,8 +20,6 @@ export function useTimer(selectedProject?: {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
-
-  const colorsScheme = useColorScheme();
 
   const {
     timeEntries,

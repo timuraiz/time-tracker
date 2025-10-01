@@ -43,7 +43,8 @@ export function useUploadProfilePicture() {
 export function useGetProfile() {
   return useQuery({
     queryKey: ['profile'],
-    queryFn: () => apiService.getUser()
+    queryFn: () => apiService.getUser(),
+    staleTime: 1800000, // 30 minutes
   })
 }
 

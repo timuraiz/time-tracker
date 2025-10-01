@@ -104,6 +104,20 @@ export type CreateUserRequest = {
 export type CreateUserResponse = User;
 export type UpdateUserResponse = User;
 
+export type LeaderboardEntry = {
+  user_id: string;
+  name: string;
+  profile_picture_url?: string;
+  total_hours: number;
+  level: string;
+  level_color: string;
+  rank: number;
+  current_streak: number;
+  is_current_user: boolean;
+};
+
+export type GetLeaderboardResponse = LeaderboardEntry[];
+
 class ApiService {
   url = "http://172.25.196.253:8080/api/v1";
 
@@ -260,6 +274,15 @@ class ApiService {
       method: "POST",
       body: formData,
     }, true);
+  }
+
+  async getLeaderboard(): Promise<{
+    data: GetLeaderboardResponse | null;
+    error: any;
+  }> {
+    return this.makeRequest("/leaderboard", {
+      method: "GET",
+    });
   }
 }
 

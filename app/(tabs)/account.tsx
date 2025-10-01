@@ -4,10 +4,11 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useUserData, useUserStats } from "@/hooks/use-profile";
+import { useGetProfile, useUserData, useUserStats } from "@/hooks/use-profile";
 import { useProfileActions } from "@/hooks/use-profile-actions";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -27,63 +28,12 @@ interface SettingsItem {
 export default function Profile() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  const { isLoading } = useGetProfile();
   const userData = useUserData();
   const userStats = useUserStats();
   const { handleUploadPicture, handleSignOut, isSigningOut } =
     useProfileActions();
   const [showProjectsModal, setShowProjectsModal] = useState(false);
-
-  const settingsItems: SettingsItem[] = [
-    {
-      id: "projects",
-      title: "Manage Projects",
-      subtitle: "Create and edit projects",
-      icon: "📁",
-      onPress: () => setShowProjectsModal(true),
-    },
-    // {
-    //   id: "notifications",
-    //   title: "Notifications",
-    //   subtitle: "Manage your alerts",
-    //   icon: "🔔",
-    //   onPress: () => console.log("Notifications"),
-    // },
-    // {
-    //   id: "goals",
-    //   title: "Daily Goals",
-    //   subtitle: "Set your targets",
-    //   icon: "🎯",
-    //   onPress: () => console.log("Goals"),
-    // },
-    // {
-    //   id: "themes",
-    //   title: "Themes",
-    //   subtitle: "Customize appearance",
-    //   icon: "🎨",
-    //   onPress: () => console.log("Themes"),
-    // },
-    // {
-    //   id: "export",
-    //   title: "Export Data",
-    //   subtitle: "Download your progress",
-    //   icon: "📊",
-    //   onPress: () => console.log("Export"),
-    // },
-    // {
-    //   id: "help",
-    //   title: "Help & Support",
-    //   subtitle: "Get assistance",
-    //   icon: "❓",
-    //   onPress: () => console.log("Help"),
-    // },
-    {
-      id: "signout",
-      title: "Sign Out",
-      subtitle: "Sign out of your account",
-      icon: "🚪",
-      onPress: handleSignOut,
-    },
-  ];
 
   const styles = StyleSheet.create({
     container: {
@@ -237,6 +187,66 @@ export default function Profile() {
       opacity: 0.4,
     },
   });
+
+  if (isLoading) {
+    return (
+      <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </ThemedView>
+    );
+  }
+
+  const settingsItems: SettingsItem[] = [
+    {
+      id: "projects",
+      title: "Manage Projects",
+      subtitle: "Create and edit projects",
+      icon: "📁",
+      onPress: () => setShowProjectsModal(true),
+    },
+    // {
+    //   id: "notifications",
+    //   title: "Notifications",
+    //   subtitle: "Manage your alerts",
+    //   icon: "🔔",
+    //   onPress: () => console.log("Notifications"),
+    // },
+    // {
+    //   id: "goals",
+    //   title: "Daily Goals",
+    //   subtitle: "Set your targets",
+    //   icon: "🎯",
+    //   onPress: () => console.log("Goals"),
+    // },
+    // {
+    //   id: "themes",
+    //   title: "Themes",
+    //   subtitle: "Customize appearance",
+    //   icon: "🎨",
+    //   onPress: () => console.log("Themes"),
+    // },
+    // {
+    //   id: "export",
+    //   title: "Export Data",
+    //   subtitle: "Download your progress",
+    //   icon: "📊",
+    //   onPress: () => console.log("Export"),
+    // },
+    // {
+    //   id: "help",
+    //   title: "Help & Support",
+    //   subtitle: "Get assistance",
+    //   icon: "❓",
+    //   onPress: () => console.log("Help"),
+    // },
+    {
+      id: "signout",
+      title: "Sign Out",
+      subtitle: "Sign out of your account",
+      icon: "🚪",
+      onPress: handleSignOut,
+    },
+  ];
 
   return (
     <ScrollView style={styles.container}>

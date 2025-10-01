@@ -2,73 +2,23 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useLeaderboard } from "@/hooks/use-leaderboard";
 import React from "react";
-import { Image, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface LeaderboardEntry {
-  id: string;
-  name: string;
-  totalTime: number;
-  streak: number;
-  level: string;
-  avatarUrl: string;
-  isCurrentUser?: boolean;
-}
 
 export default function Leaderboard() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  const { data: leaderboardResponse, isLoading } = useLeaderboard();
 
-  // Mock leaderboard data
-  const leaderboardData: LeaderboardEntry[] = [
-    {
-      id: "1",
-      name: "Dream Builder",
-      totalTime: 28800000, // 8 hours in ms
-      streak: 15,
-      level: "Master",
-      avatarUrl: "https://i.pravatar.cc/100?img=1",
-      isCurrentUser: true,
-    },
-    {
-      id: "2",
-      name: "Code Warrior",
-      totalTime: 25200000, // 7 hours
-      streak: 12,
-      level: "Expert",
-      avatarUrl: "https://i.pravatar.cc/100?img=2",
-    },
-    {
-      id: "3",
-      name: "Focus Hero",
-      totalTime: 21600000, // 6 hours
-      streak: 8,
-      level: "Pro",
-      avatarUrl: "https://i.pravatar.cc/100?img=3",
-    },
-    {
-      id: "4",
-      name: "Time Master",
-      totalTime: 18000000, // 5 hours
-      streak: 6,
-      level: "Advanced",
-      avatarUrl: "https://i.pravatar.cc/100?img=4",
-    },
-    {
-      id: "5",
-      name: "Goal Crusher",
-      totalTime: 14400000, // 4 hours
-      streak: 4,
-      level: "Intermediate",
-      avatarUrl: "https://i.pravatar.cc/100?img=5",
-    },
-  ];
+  const leaderboardData = leaderboardResponse?.data || [];
+  const currentUser = leaderboardData.find(entry => entry.is_current_user);
 
-  const formatTime = (milliseconds: number) => {
-    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
+  const formatTime = (hours: number) => {
+    const h = Math.floor(hours);
+    const m = Math.floor((hours - h) * 60);
+    return `${h}h ${m}m`;
   };
 
   const getRankIcon = (rank: number) => {
@@ -81,23 +31,6 @@ export default function Leaderboard() {
         return "🥉";
       default:
         return `#${rank}`;
-    }
-  };
-
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "Master":
-        return "#ffd700"; // Gold
-      case "Expert":
-        return "#ff6b6b"; // Red
-      case "Pro":
-        return "#4ecdc4"; // Teal
-      case "Advanced":
-        return "#45b7d1"; // Blue
-      case "Intermediate":
-        return "#96ceb4"; // Green
-      default:
-        return colors.text;
     }
   };
 
@@ -270,6 +203,14 @@ export default function Leaderboard() {
     },
   });
 
+  if (isLoading) {
+    return (
+      <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </ThemedView>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       <SafeAreaView>
@@ -285,46 +226,52 @@ export default function Leaderboard() {
         {/* Top 3 Podium */}
         <View style={styles.podiumContainer}>
           {/* Second Place */}
-          <View style={styles.podiumItem}>
-            <ThemedView style={[styles.podiumPlace, styles.secondPlace]}>
-              <Image
-                source={{ uri: leaderboardData[1]?.avatarUrl }}
-                style={styles.podiumAvatar}
-              />
-              <ThemedText style={styles.podiumRank}>🥈</ThemedText>
-              <ThemedText style={styles.podiumTime}>
-                {formatTime(leaderboardData[1]?.totalTime || 0)}
-              </ThemedText>
-            </ThemedView>
-          </View>
+          {leaderboardData[1] && (
+            <View style={styles.podiumItem}>
+              <ThemedView style={[styles.podiumPlace, styles.secondPlace]}>
+                <Image
+                  source={{ uri: leaderboardData[1].profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(leaderboardData[1].name)}&background=3b82f6&color=fff&size=200` }}
+                  style={styles.podiumAvatar}
+                />
+                <ThemedText style={styles.podiumRank}>🥈</ThemedText>
+                <ThemedText style={styles.podiumTime}>
+                  {formatTime(leaderboardData[1].total_hours)}
+                </ThemedText>
+              </ThemedView>
+            </View>
+          )}
 
           {/* First Place */}
-          <View style={styles.podiumItem}>
-            <ThemedView style={[styles.podiumPlace, styles.firstPlace]}>
-              <Image
-                source={{ uri: leaderboardData[0]?.avatarUrl }}
-                style={styles.podiumAvatar}
-              />
-              <ThemedText style={styles.podiumRank}>🥇</ThemedText>
-              <ThemedText style={styles.podiumTime}>
-                {formatTime(leaderboardData[0]?.totalTime || 0)}
-              </ThemedText>
-            </ThemedView>
-          </View>
+          {leaderboardData[0] && (
+            <View style={styles.podiumItem}>
+              <ThemedView style={[styles.podiumPlace, styles.firstPlace]}>
+                <Image
+                  source={{ uri: leaderboardData[0].profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(leaderboardData[0].name)}&background=3b82f6&color=fff&size=200` }}
+                  style={styles.podiumAvatar}
+                />
+                <ThemedText style={styles.podiumRank}>🥇</ThemedText>
+                <ThemedText style={styles.podiumTime}>
+                  {formatTime(leaderboardData[0].total_hours)}
+                </ThemedText>
+              </ThemedView>
+            </View>
+          )}
 
           {/* Third Place */}
-          <View style={styles.podiumItem}>
-            <ThemedView style={[styles.podiumPlace, styles.thirdPlace]}>
-              <Image
-                source={{ uri: leaderboardData[2]?.avatarUrl }}
-                style={styles.podiumAvatar}
-              />
-              <ThemedText style={styles.podiumRank}>🥉</ThemedText>
-              <ThemedText style={styles.podiumTime}>
-                {formatTime(leaderboardData[2]?.totalTime || 0)}
-              </ThemedText>
-            </ThemedView>
-          </View>
+          {leaderboardData[2] && (
+            <View style={styles.podiumItem}>
+              <ThemedView style={[styles.podiumPlace, styles.thirdPlace]}>
+                <Image
+                  source={{ uri: leaderboardData[2].profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(leaderboardData[2].name)}&background=3b82f6&color=fff&size=200` }}
+                  style={styles.podiumAvatar}
+                />
+                <ThemedText style={styles.podiumRank}>🥉</ThemedText>
+                <ThemedText style={styles.podiumTime}>
+                  {formatTime(leaderboardData[2].total_hours)}
+                </ThemedText>
+              </ThemedView>
+            </View>
+          )}
         </View>
 
         {/* Full Rankings */}
@@ -332,19 +279,19 @@ export default function Leaderboard() {
           <ThemedText type="subtitle" style={styles.cardTitle}>
             Full Rankings
           </ThemedText>
-          {leaderboardData.map((entry, index) => (
+          {leaderboardData.map((entry) => (
             <ThemedView
-              key={entry.id}
+              key={entry.user_id}
               style={[
                 styles.leaderboardItem,
-                entry.isCurrentUser && styles.currentUserItem,
+                entry.is_current_user && styles.currentUserItem,
               ]}
             >
               <ThemedText style={styles.rank}>
-                {getRankIcon(index + 1)}
+                {getRankIcon(entry.rank)}
               </ThemedText>
               <Image
-                source={{ uri: entry.avatarUrl }}
+                source={{ uri: entry.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.name)}&background=3b82f6&color=fff&size=200` }}
                 style={styles.avatar}
               />
               <View style={styles.userInfo}>
@@ -352,7 +299,7 @@ export default function Leaderboard() {
                 <ThemedText
                   style={[
                     styles.userLevel,
-                    { color: getLevelColor(entry.level) },
+                    { color: entry.level_color },
                   ]}
                 >
                   {entry.level}
@@ -360,10 +307,10 @@ export default function Leaderboard() {
               </View>
               <View style={styles.userStats}>
                 <ThemedText style={styles.userTime}>
-                  {formatTime(entry.totalTime)}
+                  {formatTime(entry.total_hours)}
                 </ThemedText>
                 <ThemedText style={styles.userStreak}>
-                  🔥 {entry.streak} day streak
+                  🔥 {entry.current_streak} day streak
                 </ThemedText>
               </View>
             </ThemedView>
@@ -371,27 +318,29 @@ export default function Leaderboard() {
         </ThemedView>
 
         {/* Personal Stats */}
-        <ThemedView style={styles.statsCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            Your Progress
-          </ThemedText>
-          <ThemedView style={styles.statsRow}>
-            <ThemedText style={styles.statsLabel}>Current Rank</ThemedText>
-            <ThemedText style={styles.statsValue}>#1</ThemedText>
+        {currentUser && (
+          <ThemedView style={styles.statsCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              Your Progress
+            </ThemedText>
+            <ThemedView style={styles.statsRow}>
+              <ThemedText style={styles.statsLabel}>Current Rank</ThemedText>
+              <ThemedText style={styles.statsValue}>#{currentUser.rank}</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.statsRow}>
+              <ThemedText style={styles.statsLabel}>Level</ThemedText>
+              <ThemedText style={styles.statsValue}>{currentUser.level}</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.statsRow}>
+              <ThemedText style={styles.statsLabel}>Total Focus Time</ThemedText>
+              <ThemedText style={styles.statsValue}>{formatTime(currentUser.total_hours)}</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.statsRow}>
+              <ThemedText style={styles.statsLabel}>Current Streak</ThemedText>
+              <ThemedText style={styles.statsValue}>🔥 {currentUser.current_streak} days</ThemedText>
+            </ThemedView>
           </ThemedView>
-          <ThemedView style={styles.statsRow}>
-            <ThemedText style={styles.statsLabel}>Level</ThemedText>
-            <ThemedText style={styles.statsValue}>Master</ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.statsRow}>
-            <ThemedText style={styles.statsLabel}>Total Focus Time</ThemedText>
-            <ThemedText style={styles.statsValue}>8h 0m</ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.statsRow}>
-            <ThemedText style={styles.statsLabel}>Current Streak</ThemedText>
-            <ThemedText style={styles.statsValue}>🔥 15 days</ThemedText>
-          </ThemedView>
-        </ThemedView>
+        )}
       </SafeAreaView>
     </ScrollView>
   );
