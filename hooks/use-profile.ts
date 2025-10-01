@@ -1,5 +1,5 @@
 import { apiService, CreateUserRequest } from '@/services/api'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 
 export function useCreateProfile() {
@@ -9,11 +9,16 @@ export function useCreateProfile() {
 }
 
 
-// export function useUpdateProfilePicture() {
-//     return useMutation({
-//       mutationFn: (params: UpdateUserResponse) => apiService.updateTimeEntry(params),
-//     })
-// }
+export function useUploadProfilePicture() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ uri, fileName, mimeType }: { uri: string; fileName: string; mimeType: string }) =>
+      apiService.uploadProfilePicture(uri, fileName, mimeType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    }
+  })
+}
 
 
 export function useGetProfile() {

@@ -5,7 +5,8 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useAuthContext } from "@/hooks/use-auth-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useGetProfile } from "@/hooks/use-profile";
+import { useImagePicker } from "@/hooks/use-image-picker";
+import { useGetProfile, useUploadProfilePicture } from "@/hooks/use-profile";
 import { supabase } from "@/lib/supabase.web";
 import React, { useState } from "react";
 import {
@@ -40,11 +41,10 @@ export default function Profile() {
   const colors = Colors[colorScheme ?? "light"];
   const { session } = useAuthContext();
   const { data: profileData } = useGetProfile();
+  const uploadProfilePictureMutation = useUploadProfilePicture();
+  const { pickImage } = useImagePicker();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
-
-  console.log("data", profileData);
-
   // User data from API
   const userData = {
     name:
@@ -70,6 +70,21 @@ export default function Profile() {
     currentStreak: 15,
     averagePerDay: 4.2,
     level: "Master",
+  };
+
+  const handleUploadPicture = async () => {
+    const image = await pickImage();
+    if (!image) return;
+
+    try {
+      const response = await uploadProfilePictureMutation.mutateAsync(image);
+      if (response.error) {
+        throw response.error;
+      }
+    } catch (error) {
+      console.error("Error uploading picture:", error);
+      Alert.alert("Error", "Failed to upload profile picture");
+    }
   };
 
   const handleSignOut = async () => {
@@ -102,41 +117,41 @@ export default function Profile() {
       icon: "📁",
       onPress: () => setShowProjectsModal(true),
     },
-    {
-      id: "notifications",
-      title: "Notifications",
-      subtitle: "Manage your alerts",
-      icon: "🔔",
-      onPress: () => console.log("Notifications"),
-    },
-    {
-      id: "goals",
-      title: "Daily Goals",
-      subtitle: "Set your targets",
-      icon: "🎯",
-      onPress: () => console.log("Goals"),
-    },
-    {
-      id: "themes",
-      title: "Themes",
-      subtitle: "Customize appearance",
-      icon: "🎨",
-      onPress: () => console.log("Themes"),
-    },
-    {
-      id: "export",
-      title: "Export Data",
-      subtitle: "Download your progress",
-      icon: "📊",
-      onPress: () => console.log("Export"),
-    },
-    {
-      id: "help",
-      title: "Help & Support",
-      subtitle: "Get assistance",
-      icon: "❓",
-      onPress: () => console.log("Help"),
-    },
+    // {
+    //   id: "notifications",
+    //   title: "Notifications",
+    //   subtitle: "Manage your alerts",
+    //   icon: "🔔",
+    //   onPress: () => console.log("Notifications"),
+    // },
+    // {
+    //   id: "goals",
+    //   title: "Daily Goals",
+    //   subtitle: "Set your targets",
+    //   icon: "🎯",
+    //   onPress: () => console.log("Goals"),
+    // },
+    // {
+    //   id: "themes",
+    //   title: "Themes",
+    //   subtitle: "Customize appearance",
+    //   icon: "🎨",
+    //   onPress: () => console.log("Themes"),
+    // },
+    // {
+    //   id: "export",
+    //   title: "Export Data",
+    //   subtitle: "Download your progress",
+    //   icon: "📊",
+    //   onPress: () => console.log("Export"),
+    // },
+    // {
+    //   id: "help",
+    //   title: "Help & Support",
+    //   subtitle: "Get assistance",
+    //   icon: "❓",
+    //   onPress: () => console.log("Help"),
+    // },
     {
       id: "signout",
       title: "Sign Out",
@@ -317,7 +332,9 @@ export default function Profile() {
       <SafeAreaView>
         {/* Profile Card */}
         <ThemedView style={styles.profileCard}>
-          <Image source={{ uri: userData.avatarUrl }} style={styles.avatar} />
+          <TouchableOpacity onPress={handleUploadPicture} activeOpacity={0.7}>
+            <Image source={{ uri: userData.avatarUrl }} style={styles.avatar} />
+          </TouchableOpacity>
           <ThemedView
             style={{
               flexDirection: "row",

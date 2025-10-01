@@ -96,7 +96,8 @@ class ApiService {
 
   private async makeRequest(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    skipContentType = false
   ): Promise<{ data: any | null; error: any }> {
     const {
       data: { session },
@@ -108,13 +109,18 @@ class ApiService {
     }
 
     try {
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${session.access_token}`,
+        ...options.headers as Record<string, string>,
+      };
+
+      if (!skipContentType) {
+        headers["Content-Type"] = "application/json";
+      }
+
       const response = await fetch(this.url + endpoint, {
         ...options,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-          ...options.headers,
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -225,21 +231,23 @@ class ApiService {
       body: JSON.stringify(params),
     });
   }
-  // async updateUserPicture(): Promise<{
-  //   data: GetUserResponse | null;
-  //   error: any;
-  // }> {
-  //   return this.makeRequest("/profile", {
-  //     method: "UPDATE",
-  //   });
-  // }
-  // async deleteUser(): Promise<{
-  //   error: any;
-  // }> {
-  //   return this.makeRequest("/profile", {
-  //     method: "DELETE",
-  //   });
-  // }
+
+  async uploadProfilePicture(uri: string, fileName: string, mimeType: string): Promise<{
+    data: UpdateUserResponse | null;
+    error: any;
+  }> {
+    const formData = new FormData();
+    formData.append("file", {
+      uri,
+      name: fileName,
+      type: mimeType,
+    } as any);
+
+    return this.makeRequest("/profile/picture", {
+      method: "POST",
+      body: formData,
+    }, true);
+  }
 }
 
 export const apiService = new ApiService()
