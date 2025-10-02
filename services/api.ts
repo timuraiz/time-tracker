@@ -119,7 +119,7 @@ export type LeaderboardEntry = {
 export type GetLeaderboardResponse = LeaderboardEntry[];
 
 class ApiService {
-  url = "http://172.25.196.253:8080/api/v1";
+  url = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
   private async makeRequest(
     endpoint: string,
@@ -138,7 +138,7 @@ class ApiService {
     try {
       const headers: Record<string, string> = {
         Authorization: `Bearer ${session.access_token}`,
-        ...options.headers as Record<string, string>,
+        ...(options.headers as Record<string, string>),
       };
 
       if (!skipContentType) {
@@ -160,6 +160,7 @@ class ApiService {
       const data = await response.json();
       return { data, error: null };
     } catch (error) {
+      console.log("Error", error);
       return { data: null, error };
     }
   }
@@ -259,7 +260,11 @@ class ApiService {
     });
   }
 
-  async uploadProfilePicture(uri: string, fileName: string, mimeType: string): Promise<{
+  async uploadProfilePicture(
+    uri: string,
+    fileName: string,
+    mimeType: string
+  ): Promise<{
     data: UpdateUserResponse | null;
     error: any;
   }> {
@@ -270,10 +275,14 @@ class ApiService {
       type: mimeType,
     } as any);
 
-    return this.makeRequest("/profile/picture", {
-      method: "POST",
-      body: formData,
-    }, true);
+    return this.makeRequest(
+      "/profile/picture",
+      {
+        method: "POST",
+        body: formData,
+      },
+      true
+    );
   }
 
   async getLeaderboard(): Promise<{

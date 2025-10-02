@@ -27,13 +27,7 @@ export default function HomeScreen() {
   );
 
   const { projects } = useProjects();
-  const selectedProject = projects.find((p) => p.id === selectedProjectId) || {
-    id: "general",
-    name: "General",
-    color: colors.primary,
-    description: "",
-    created_at: new Date().toISOString(),
-  };
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
   const {
     isRunning,
@@ -52,6 +46,23 @@ export default function HomeScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    offlineBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#ff6b6b",
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginHorizontal: 16,
+      marginTop: 8,
+      borderRadius: 8,
+      gap: 8,
+    },
+    offlineBannerText: {
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: "600",
     },
     header: {
       padding: 24,
@@ -278,22 +289,28 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
       <SafeAreaView>
+        {!isOnline && (
+          <ThemedView style={styles.offlineBanner}>
+            <MaterialIcons name="wifi-off" size={16} color="#fff" />
+            <ThemedText style={styles.offlineBannerText}>
+              You're offline. Changes will be saved locally.
+            </ThemedText>
+          </ThemedView>
+        )}
         <ThemedView style={styles.timerCard}>
           <TouchableOpacity
             style={styles.projectSection}
             onPress={() => setShowProjectsModal(true)}
           >
             <View style={styles.projectNameContainer}>
-              {selectedProject?.color && (
-                <View
-                  style={[
-                    styles.projectColorIndicator,
-                    { backgroundColor: selectedProject.color },
-                  ]}
-                />
-              )}
+              <View
+                style={[
+                  styles.projectColorIndicator,
+                  { backgroundColor: selectedProject?.color || colors.primary },
+                ]}
+              />
               <ThemedOneLineText type="subtitle" style={styles.projectName}>
-                {selectedProject?.name || "Select Project"}
+                {selectedProject?.name || "General"}
               </ThemedOneLineText>
             </View>
             <MaterialIcons

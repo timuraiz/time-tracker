@@ -69,7 +69,7 @@ export default function AuthForm() {
       setPendingEmail(email);
       setIsOtpMode(true);
       Alert.alert(
-        "OTP Sent",
+        "Verification Code Sent",
         "Check your email for the 6-digit verification code!"
       );
     }
@@ -95,11 +95,6 @@ export default function AuthForm() {
           console.error("Error creating profile:", profileError);
         }
       }
-
-      Alert.alert(
-        "Success",
-        isSignUp ? "Account created successfully!" : "Signed in successfully!"
-      );
       setIsOtpMode(false);
       setOtp("");
       setPendingEmail("");

@@ -42,10 +42,10 @@ export function useUploadProfilePicture() {
 
 export function useGetProfile() {
   return useQuery({
-    queryKey: ['profile'],
+    queryKey: ["profile"],
     queryFn: () => apiService.getUser(),
-    staleTime: 1800000, // 30 minutes
-  })
+    staleTime: 30000, // 30 seconds
+  });
 }
 
 export function useUserData(): UserData {

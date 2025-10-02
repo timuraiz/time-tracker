@@ -20,7 +20,7 @@ import {
 interface ProjectsModalProps {
   visible: boolean;
   onClose: () => void;
-  onProjectSelect?: (projectId: string) => void;
+  onProjectSelect?: (projectId: string | null) => void;
   readOnly?: boolean;
 }
 
@@ -341,7 +341,7 @@ export default function ProjectsModal({
                         </ThemedOneLineText>
                       ) : null}
                     </View>
-                    {!readOnly && (
+                    {!readOnly && project.name !== "General" && (
                       <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => handleDeleteProject(project.id)}

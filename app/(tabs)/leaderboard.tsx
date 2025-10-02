@@ -230,7 +230,13 @@ export default function Leaderboard() {
             <View style={styles.podiumItem}>
               <ThemedView style={[styles.podiumPlace, styles.secondPlace]}>
                 <Image
-                  source={{ uri: leaderboardData[1].profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(leaderboardData[1].name)}&background=3b82f6&color=fff&size=200` }}
+                  source={{
+                    uri:
+                      leaderboardData[1].profile_picture_url ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        leaderboardData[1].name
+                      )}&background=3b82f6&color=fff&size=200`,
+                  }}
                   style={styles.podiumAvatar}
                 />
                 <ThemedText style={styles.podiumRank}>🥈</ThemedText>
@@ -246,7 +252,13 @@ export default function Leaderboard() {
             <View style={styles.podiumItem}>
               <ThemedView style={[styles.podiumPlace, styles.firstPlace]}>
                 <Image
-                  source={{ uri: leaderboardData[0].profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(leaderboardData[0].name)}&background=3b82f6&color=fff&size=200` }}
+                  source={{
+                    uri:
+                      leaderboardData[0].profile_picture_url ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        leaderboardData[0].name
+                      )}&background=3b82f6&color=fff&size=200`,
+                  }}
                   style={styles.podiumAvatar}
                 />
                 <ThemedText style={styles.podiumRank}>🥇</ThemedText>
@@ -262,7 +274,13 @@ export default function Leaderboard() {
             <View style={styles.podiumItem}>
               <ThemedView style={[styles.podiumPlace, styles.thirdPlace]}>
                 <Image
-                  source={{ uri: leaderboardData[2].profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(leaderboardData[2].name)}&background=3b82f6&color=fff&size=200` }}
+                  source={{
+                    uri:
+                      leaderboardData[2].profile_picture_url ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        leaderboardData[2].name
+                      )}&background=3b82f6&color=fff&size=200`,
+                  }}
                   style={styles.podiumAvatar}
                 />
                 <ThemedText style={styles.podiumRank}>🥉</ThemedText>
@@ -291,16 +309,19 @@ export default function Leaderboard() {
                 {getRankIcon(entry.rank)}
               </ThemedText>
               <Image
-                source={{ uri: entry.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.name)}&background=3b82f6&color=fff&size=200` }}
+                source={{
+                  uri:
+                    entry.profile_picture_url ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      entry.name
+                    )}&background=3b82f6&color=fff&size=200`,
+                }}
                 style={styles.avatar}
               />
               <View style={styles.userInfo}>
                 <ThemedText style={styles.userName}>{entry.name}</ThemedText>
                 <ThemedText
-                  style={[
-                    styles.userLevel,
-                    { color: entry.level_color },
-                  ]}
+                  style={[styles.userLevel, { color: entry.level_color }]}
                 >
                   {entry.level}
                 </ThemedText>
@@ -310,7 +331,8 @@ export default function Leaderboard() {
                   {formatTime(entry.total_hours)}
                 </ThemedText>
                 <ThemedText style={styles.userStreak}>
-                  🔥 {entry.current_streak} day streak
+                  {entry.current_streak > 2 ? "🔥 " : ""}
+                  {entry.current_streak} day streak
                 </ThemedText>
               </View>
             </ThemedView>
@@ -325,19 +347,32 @@ export default function Leaderboard() {
             </ThemedText>
             <ThemedView style={styles.statsRow}>
               <ThemedText style={styles.statsLabel}>Current Rank</ThemedText>
-              <ThemedText style={styles.statsValue}>#{currentUser.rank}</ThemedText>
+              <ThemedText style={styles.statsValue}>
+                #{currentUser.rank}
+              </ThemedText>
             </ThemedView>
             <ThemedView style={styles.statsRow}>
               <ThemedText style={styles.statsLabel}>Level</ThemedText>
-              <ThemedText style={styles.statsValue}>{currentUser.level}</ThemedText>
+              <ThemedText style={styles.statsValue}>
+                {currentUser.level}
+              </ThemedText>
             </ThemedView>
             <ThemedView style={styles.statsRow}>
-              <ThemedText style={styles.statsLabel}>Total Focus Time</ThemedText>
-              <ThemedText style={styles.statsValue}>{formatTime(currentUser.total_hours)}</ThemedText>
+              <ThemedText style={styles.statsLabel}>
+                Total Focus Time
+              </ThemedText>
+              <ThemedText style={styles.statsValue}>
+                {formatTime(currentUser.total_hours)}
+              </ThemedText>
             </ThemedView>
             <ThemedView style={styles.statsRow}>
               <ThemedText style={styles.statsLabel}>Current Streak</ThemedText>
-              <ThemedText style={styles.statsValue}>🔥 {currentUser.current_streak} days</ThemedText>
+              <ThemedText style={styles.statsValue}>
+                {currentUser.current_streak && currentUser.current_streak > 2
+                  ? "🔥 "
+                  : ""}
+                {currentUser.current_streak} days
+              </ThemedText>
             </ThemedView>
           </ThemedView>
         )}
